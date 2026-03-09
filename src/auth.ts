@@ -64,5 +64,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   pages: {
     signIn: '/', // Will connect to existing login screen at root
   },
-  session: { strategy: "jwt" }
+  session: { strategy: "jwt" },
+  trustHost: true,
 })
