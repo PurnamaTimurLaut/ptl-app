@@ -39,9 +39,9 @@ export default function LoginScreen() {
   return (
     <div className="flex flex-col min-h-screen bg-[var(--color-ios-gray-6)] font-sans items-center py-20 px-8">
       
-      {/* Logo Placeholder */}
-      <div className="w-24 h-24 rounded-full border-4 border-black flex items-center justify-center mb-8">
-        {/* Placeholder for real logo */}
+      {/* Logo */}
+      <div className="w-24 h-24 mb-8 flex items-center justify-center">
+        <img src="/O 1.png" alt="O Logo" className="w-full h-full object-contain" />
       </div>
 
       <h1 className="text-[28px] font-bold tracking-tight text-black text-center mb-12 leading-tight">

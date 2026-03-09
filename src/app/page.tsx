@@ -9,6 +9,7 @@ import BatchDetailScreen from "@/components/operational/BatchDetailScreen";
 import ProjectsScreen from "@/components/director/ProjectsScreen";
 import AddProjectScreen from "@/components/director/AddProjectScreen";
 import ProjectDetailScreen from "@/components/director/ProjectDetailScreen";
+import SplashScreen from "@/components/SplashScreen";
 
 type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "director_projects" | "director_add_project" | "director_project_detail";
 
@@ -17,6 +18,7 @@ export default function AppRouter() {
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [hasPassedSplash, setHasPassedSplash] = useState(false);
 
   if (status === "loading") {
     return <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex items-center justify-center">Loading...</div>;
@@ -24,6 +26,9 @@ export default function AppRouter() {
 
   // NextAuth Session Check: If no session, enforce login screen.
   if (!session) {
+    if (!hasPassedSplash) {
+      return <SplashScreen onEnter={() => setHasPassedSplash(true)} />;
+    }
     return (
       <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
         <LoginScreen />
