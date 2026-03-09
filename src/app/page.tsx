@@ -1,65 +1,102 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
+import { useState } from "react";
+import { useSession, signOut } from "next-auth/react";
+import LoginScreen from "@/components/LoginScreen";
+import DivisionDashboard from "@/components/DivisionDashboard";
+import BatchesScreen from "@/components/operational/BatchesScreen";
+import BatchDetailScreen from "@/components/operational/BatchDetailScreen";
+import ProjectsScreen from "@/components/director/ProjectsScreen";
+import AddProjectScreen from "@/components/director/AddProjectScreen";
+import ProjectDetailScreen from "@/components/director/ProjectDetailScreen";
+
+type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "director_projects" | "director_add_project" | "director_project_detail";
+
+export default function AppRouter() {
+  const { data: session, status } = useSession();
+  const [currentView, setCurrentView] = useState<AppView>("dashboard");
+  const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+
+  if (status === "loading") {
+    return <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex items-center justify-center">Loading...</div>;
+  }
+
+  // NextAuth Session Check: If no session, enforce login screen.
+  if (!session) {
+    return (
+      <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
+        <LoginScreen />
       </main>
-    </div>
+    );
+  }
+
+  const handleLogout = () => {
+    signOut();
+  };
+
+  const navigateToDepartment = (departmentId: string) => {
+    if (departmentId === 'operational') {
+      setCurrentView("operational_batches");
+    } else if (departmentId === 'director') {
+      setCurrentView("director_projects");
+    }
+  };
+
+  const handleViewBatch = (batchId: number) => {
+    setSelectedBatchId(batchId);
+    setCurrentView("operational_batch_detail");
+  };
+
+  const handleBackToBatches = () => {
+    setSelectedBatchId(null);
+    setCurrentView("operational_batches");
+  };
+
+  const handleViewProject = (projectId: string) => {
+    setSelectedProjectId(projectId);
+    setCurrentView("director_project_detail");
+  };
+
+  return (
+    <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
+      {currentView === "dashboard" && (
+        <DivisionDashboard 
+          userName={session.user?.name || "User"} 
+          role={session.user?.role?.toUpperCase() || "STAFF"} 
+          onLogout={handleLogout} 
+          onNavigate={navigateToDepartment}
+        />
+      )}
+
+      {currentView === "operational_batches" && (
+        <BatchesScreen onViewBatch={handleViewBatch} />
+      )}
+
+      {currentView === "operational_batch_detail" && selectedBatchId && (
+        <BatchDetailScreen batchId={selectedBatchId} onBack={handleBackToBatches} />
+      )}
+
+      {currentView === "director_projects" && (
+        <ProjectsScreen 
+           onAddProject={() => setCurrentView("director_add_project")} 
+           onViewProject={handleViewProject}
+        />
+      )}
+
+      {currentView === "director_add_project" && (
+        <AddProjectScreen 
+           onBack={() => setCurrentView("director_projects")} 
+           onCreate={() => setCurrentView("director_projects")} 
+        />
+      )}
+
+      {currentView === "director_project_detail" && selectedProjectId && (
+        <ProjectDetailScreen 
+           projectId={selectedProjectId} 
+           onBack={() => setCurrentView("director_projects")} 
+        />
+      )}
+    </main>
   );
 }

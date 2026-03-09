@@ -1,0 +1,42 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String   
+  name      String
+  role      String   // DIRECTOR or OPERATIONAL
+  createdAt DateTime @default(now())
+}
+
+model Project {
+  id          String   @id @default(cuid())
+  name        String
+  startDate   DateTime
+  endDate     DateTime
+  budget      Float
+  status      String   @default("RUNNING") // RUNNING, COMPLETED, CANCELLED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  productions Production[]
+}
+
+model Production {
+  id           String   @id @default(cuid())
+  projectId    String
+  menuId       String
+  quantity     Int
+  assignedDate DateTime
+  deadlineDate DateTime
+  status       String   @default("ASSIGNED")
+  
+  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+}
