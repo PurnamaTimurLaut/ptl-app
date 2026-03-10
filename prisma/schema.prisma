@@ -42,27 +42,40 @@ model Production {
   project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-model MenuRecipe {
+// --- DATABASES MODULE ---
+
+// 1. Production Template (e.g., "Nasi Campur")
+model ProductionTemplate {
   id          String   @id @default(cuid())
   name        String   @unique
-  description String?
-  ingredients Ingredient[]
-  steps       ExecutionStep[]
+  ingredients TemplateIngredient[]
+  flows       TemplateExecutionFlow[]
 }
 
-model Ingredient {
-  id          String     @id @default(cuid())
-  recipeId    String
-  name        String
+// Ingredients belonging to a Production Template
+model TemplateIngredient {
+  id          String   @id @default(cuid())
+  templateId  String
+  name        String   
   quantity    Float
-  unit        String
-  recipe      MenuRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  unit        String   
+  template    ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
-model ExecutionStep {
-  id          String     @id @default(cuid())
-  recipeId    String
-  order       Int
-  instruction String
-  recipe      MenuRecipe @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+// The Execution sequence (e.g. "Prep Ayam") mapped to a specific Recipe 
+model TemplateExecutionFlow {
+  id          String   @id @default(cuid())
+  templateId  String
+  name        String   
+  recipeId    String?  
+  template    ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  recipe      CookingRecipe?     @relation(fields: [recipeId], references: [id])
+}
+
+// 2. The actual Cooking Instructions
+model CookingRecipe {
+  id           String   @id @default(cuid())
+  name         String   @unique 
+  instructions String   
+  flows        TemplateExecutionFlow[]
 }

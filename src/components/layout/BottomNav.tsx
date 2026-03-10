@@ -14,7 +14,7 @@ export function BottomNav({ activeTab, onTabChange }: BottomNavProps) {
     { id: 'production', label: 'Production', icon: Layers },
     { id: 'inventory', label: 'Inventory', icon: Archive },
     { id: 'schedules', label: 'Schedules', icon: CalendarIcon },
-    { id: 'recipes', label: 'Recipes', icon: BookOpen },
+    { id: 'recipes', label: 'Databases', icon: BookOpen },
   ] as const;
 
   return (

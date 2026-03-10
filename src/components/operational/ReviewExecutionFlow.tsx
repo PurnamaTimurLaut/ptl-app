@@ -230,7 +230,7 @@ export default function ReviewExecutionFlow({ onBackToBatch, isCompleted }: Revi
             
             <div className="grid grid-cols-2 gap-y-5 gap-x-4">
               <div>
-                 <label className="text-[11px] font-medium text-[var(--color-ios-gray-2)]">Ingredients and Recipes</label>
+                 <label className="text-[11px] font-medium text-[var(--color-ios-gray-2)]">Recipes</label>
                  <p className="text-[16px] font-medium text-[var(--color-ios-blue)] mt-1">Unavailable</p>
               </div>
               <div>
@@ -332,7 +332,7 @@ export default function ReviewExecutionFlow({ onBackToBatch, isCompleted }: Revi
 
               <div className="grid grid-cols-2 gap-y-4">
                 <div>
-                  <label className="text-[11px] font-medium text-[var(--color-ios-gray-2)]">Ingredients and Recipes</label>
+                  <label className="text-[11px] font-medium text-[var(--color-ios-gray-2)]">Recipes</label>
                   {item.hasRecipe ? (
                     <button 
                       onClick={() => openRecipe(item)}

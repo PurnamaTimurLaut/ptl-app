@@ -2,73 +2,41 @@
 
 import { prisma } from "./prisma";
 
-export async function getRecipes() {
+// =====================================
+// PRODUCTION TEMPLATES
+// =====================================
+
+export async function getProductionTemplates() {
   try {
-    const recipes = await prisma.menuRecipe.findMany({
+    const templates = await prisma.productionTemplate.findMany({
       include: {
         ingredients: true,
-        steps: {
-          orderBy: { order: 'asc' }
+        flows: {
+          include: { recipe: true }
         }
       }
     });
-    return { success: true, recipes };
+    return { success: true, templates };
   } catch (error) {
-    console.error("Failed to fetch recipes:", error);
-    return { success: false, error: "Failed to fetch recipes" };
+    console.error("Failed to fetch templates:", error);
+    return { success: false, error: "Failed to fetch production templates" };
   }
 }
 
-export async function getRecipeById(id: string) {
+export async function createProductionTemplate(data: { name: string }) {
   try {
-    const recipe = await prisma.menuRecipe.findUnique({
-      where: { id },
-      include: {
-        ingredients: true,
-        steps: {
-          orderBy: { order: 'asc' }
-        }
-      }
-    });
-    return { success: true, recipe };
+    const template = await prisma.productionTemplate.create({ data });
+    return { success: true, template };
   } catch (error) {
-    console.error("Failed to fetch recipe:", error);
-    return { success: false, error: "Failed to fetch recipe" };
+    console.error("Failed to create template:", error);
+    return { success: false, error: "Failed to create template (duplicate name?)" };
   }
 }
 
-export async function createRecipe(data: { name: string; description?: string }) {
+export async function addTemplateIngredient(templateId: string, data: { name: string; quantity: number; unit: string }) {
   try {
-    const recipe = await prisma.menuRecipe.create({
-      data
-    });
-    return { success: true, recipe };
-  } catch (error) {
-    console.error("Failed to create recipe:", error);
-    return { success: false, error: "Failed to create recipe (might be duplicate name)" };
-  }
-}
-
-export async function updateRecipe(id: string, data: { name: string; description?: string }) {
-  try {
-    const recipe = await prisma.menuRecipe.update({
-      where: { id },
-      data
-    });
-    return { success: true, recipe };
-  } catch (error) {
-    console.error("Failed to update recipe:", error);
-    return { success: false, error: "Failed to update recipe" };
-  }
-}
-
-export async function addIngredient(recipeId: string, data: { name: string; quantity: number; unit: string }) {
-  try {
-    const ingredient = await prisma.ingredient.create({
-      data: {
-        recipeId,
-        ...data
-      }
+    const ingredient = await prisma.templateIngredient.create({
+      data: { templateId, ...data }
     });
     return { success: true, ingredient };
   } catch (error) {
@@ -77,41 +45,65 @@ export async function addIngredient(recipeId: string, data: { name: string; quan
   }
 }
 
-export async function removeIngredient(ingredientId: string) {
+export async function removeTemplateIngredient(id: string) {
   try {
-    await prisma.ingredient.delete({
-      where: { id: ingredientId }
-    });
+    await prisma.templateIngredient.delete({ where: { id } });
     return { success: true };
   } catch (error) {
-    console.error("Failed to remove ingredient:", error);
     return { success: false, error: "Failed to remove ingredient" };
   }
 }
 
-export async function addStep(recipeId: string, data: { order: number; instruction: string }) {
+export async function addTemplateFlow(templateId: string, data: { name: string; recipeId?: string }) {
   try {
-    const step = await prisma.executionStep.create({
-      data: {
-        recipeId,
-        ...data
-      }
+    const flow = await prisma.templateExecutionFlow.create({
+      data: { templateId, name: data.name, recipeId: data.recipeId || null }
     });
-    return { success: true, step };
+    return { success: true, flow };
   } catch (error) {
-    console.error("Failed to add step:", error);
-    return { success: false, error: "Failed to add step" };
+    console.error("Failed to add flow:", error);
+    return { success: false, error: "Failed to add execution flow" };
   }
 }
 
-export async function removeStep(stepId: string) {
+export async function removeTemplateFlow(id: string) {
   try {
-    await prisma.executionStep.delete({
-      where: { id: stepId }
-    });
+    await prisma.templateExecutionFlow.delete({ where: { id } });
     return { success: true };
   } catch (error) {
-    console.error("Failed to remove step:", error);
-    return { success: false, error: "Failed to remove step" };
+    return { success: false, error: "Failed to remove execution flow" };
+  }
+}
+
+// =====================================
+// COOKING RECIPES (The How-To List)
+// =====================================
+
+export async function getCookingRecipes() {
+  try {
+    const recipes = await prisma.cookingRecipe.findMany();
+    return { success: true, recipes };
+  } catch (error) {
+    console.error("Failed to fetch cooking recipes:", error);
+    return { success: false, error: "Failed to fetch cooking recipes" };
+  }
+}
+
+export async function createCookingRecipe(data: { name: string; instructions: string }) {
+  try {
+    const recipe = await prisma.cookingRecipe.create({ data });
+    return { success: true, recipe };
+  } catch (error) {
+    console.error("Failed to create cooking recipe:", error);
+    return { success: false, error: "Failed to create cooking recipe (duplicate name?)" };
+  }
+}
+
+export async function getCookingRecipeById(id: string) {
+  try {
+    const recipe = await prisma.cookingRecipe.findUnique({ where: { id } });
+    return { success: true, recipe };
+  } catch (error) {
+    return { success: false, error: "Failed to find cooking recipe" };
   }
 }
