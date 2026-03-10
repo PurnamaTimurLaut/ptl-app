@@ -7,10 +7,12 @@ import { BottomNav } from "../layout/BottomNav";
 
 interface BatchesScreenProps {
   onViewBatch?: (batchId: number) => void;
+  onProfileClick?: () => void;
+  onNavTabChange?: (tab: 'production' | 'inventory' | 'schedules' | 'recipes') => void;
 }
 
-export default function BatchesScreen({ onViewBatch }: BatchesScreenProps) {
-  const [activeTab, setActiveTab] = useState<'batches' | 'inventory' | 'schedules'>('batches');
+export default function BatchesScreen({ onViewBatch, onProfileClick, onNavTabChange }: BatchesScreenProps) {
+  const [activeTab, setActiveTab] = useState<'production' | 'inventory' | 'schedules' | 'recipes'>('production');
 
   // Hardcoded mock data based on the Figma design
   const toMakeBatches = [
@@ -43,11 +45,11 @@ export default function BatchesScreen({ onViewBatch }: BatchesScreenProps) {
 
   return (
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-24">
-      <TopBar />
+      <TopBar onProfileClick={onProfileClick} />
       
       <main className="px-6 flex-1 max-w-xl mx-auto w-full">
         {/* Header */}
-        <h1 className="text-4xl font-bold tracking-tight text-black mb-6">Batches</h1>
+        <h1 className="text-4xl font-bold tracking-tight text-black mb-6">Production</h1>
 
         {/* Search Bar */}
         <div className="relative mb-8">
@@ -83,7 +85,7 @@ export default function BatchesScreen({ onViewBatch }: BatchesScreenProps) {
 
       </main>
 
-      <BottomNav activeTab={activeTab} onTabChange={setActiveTab} />
+      <BottomNav activeTab={activeTab} onTabChange={(tab) => { setActiveTab(tab); if(onNavTabChange) onNavTabChange(tab); }} />
     </div>
   );
 }

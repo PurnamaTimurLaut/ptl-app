@@ -223,7 +223,7 @@ export default function ProjectDetailScreen({ projectId, onBack }: ProjectDetail
               </button>
               <button 
                 onClick={() => setShowConfirm("CANCEL")}
-                className="w-full py-3.5 border border-[var(--color-ios-gray-3)] rounded-full text-[var(--color-ios-gray-1)] font-semibold text-[15px]"
+                className="w-full py-3.5 border border-red-500 rounded-full text-red-500 font-semibold text-[15px]"
               >
                  Cancel Project
               </button>

@@ -7,9 +7,10 @@ import { getProjects } from "@/app/lib/projectActions";
 interface ProjectsScreenProps {
   onAddProject: () => void;
   onViewProject: (id: string) => void;
+  onProfileClick?: () => void;
 }
 
-export default function ProjectsScreen({ onAddProject, onViewProject }: ProjectsScreenProps) {
+export default function ProjectsScreen({ onAddProject, onViewProject, onProfileClick }: ProjectsScreenProps) {
   const [runningProjects, setRunningProjects] = useState<any[]>([]);
   const [completedProjects, setCompletedProjects] = useState<any[]>([]);
   const [cancelledProjects, setCancelledProjects] = useState<any[]>([]);
@@ -38,12 +39,12 @@ export default function ProjectsScreen({ onAddProject, onViewProject }: Projects
       <div className="px-5 pt-16 flex items-center justify-between">
          <h1 className="text-[34px] font-bold text-black tracking-tight">Projects</h1>
          {/* User icon placeholder */}
-         <div className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
+         <button onClick={onProfileClick} className="w-8 h-8 rounded-full bg-gray-200 overflow-hidden flex items-center justify-center">
              {/* Using a generic user icon */}
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white bg-gray-300 w-full h-full pt-2">
                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
              </svg>
-         </div>
+         </button>
       </div>
 
       <div className="px-5 mt-4">

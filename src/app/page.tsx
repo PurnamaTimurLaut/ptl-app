@@ -10,14 +10,17 @@ import ProjectsScreen from "@/components/director/ProjectsScreen";
 import AddProjectScreen from "@/components/director/AddProjectScreen";
 import ProjectDetailScreen from "@/components/director/ProjectDetailScreen";
 import SplashScreen from "@/components/SplashScreen";
+import RecipesScreen from "@/components/operational/RecipesScreen";
+import RecipeDetailScreen from "@/components/operational/RecipeDetailScreen";
 
-type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "director_projects" | "director_add_project" | "director_project_detail";
+type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "operational_recipes" | "operational_recipe_detail" | "director_projects" | "director_add_project" | "director_project_detail";
 
 export default function AppRouter() {
   const { data: session, status } = useSession();
   const [currentView, setCurrentView] = useState<AppView>("dashboard");
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
   const [hasPassedSplash, setHasPassedSplash] = useState(false);
 
   if (status === "loading") {
@@ -63,6 +66,12 @@ export default function AppRouter() {
     setCurrentView("director_project_detail");
   };
 
+  const handleNavTabChange = (tab: 'production' | 'inventory' | 'schedules' | 'recipes') => {
+    if (tab === 'production') setCurrentView('operational_batches');
+    else if (tab === 'recipes') setCurrentView('operational_recipes');
+    // others can be added as they are built
+  };
+
   return (
     <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
       {currentView === "dashboard" && (
@@ -75,17 +84,30 @@ export default function AppRouter() {
       )}
 
       {currentView === "operational_batches" && (
-        <BatchesScreen onViewBatch={handleViewBatch} />
+        <BatchesScreen onViewBatch={handleViewBatch} onProfileClick={() => setCurrentView("dashboard")} onNavTabChange={handleNavTabChange} />
       )}
 
       {currentView === "operational_batch_detail" && selectedBatchId && (
         <BatchDetailScreen batchId={selectedBatchId} onBack={handleBackToBatches} />
       )}
 
+      {currentView === "operational_recipes" && (
+        <RecipesScreen 
+           onProfileClick={() => setCurrentView("dashboard")} 
+           onViewRecipe={(id) => { setSelectedRecipeId(id); setCurrentView("operational_recipe_detail"); }}
+           onNavTabChange={handleNavTabChange}
+        />
+      )}
+
+      {currentView === "operational_recipe_detail" && selectedRecipeId && (
+        <RecipeDetailScreen recipeId={selectedRecipeId} onBack={() => setCurrentView("operational_recipes")} />
+      )}
+
       {currentView === "director_projects" && (
         <ProjectsScreen 
            onAddProject={() => setCurrentView("director_add_project")} 
            onViewProject={handleViewProject}
+           onProfileClick={() => setCurrentView("dashboard")}
         />
       )}
 
