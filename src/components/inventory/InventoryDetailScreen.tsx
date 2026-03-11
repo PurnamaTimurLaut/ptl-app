@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronLeft, FileEdit, ArrowRightLeft, ShoppingBasket, HelpCircle, ClipboardList, Settings, Search, AlertTriangle, ChevronDown, XCircle, Tag } from "lucide-react";
+import { ChevronLeft, FileEdit, ArrowRightLeft, ShoppingBasket, HelpCircle, ClipboardList, Settings, Search, AlertTriangle, ChevronDown, XCircle, Tag, Trash2, X, Plus } from "lucide-react";
 
 interface InventoryDetailScreenProps {
   itemId: string;
@@ -81,6 +81,28 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
     { id: "u1", name: "Purchased 100gr:", source: "From Production: ASCIB00001", date: "06/03/2026, 09:02:08" },
     { id: "u2", name: "Purchased 100gr:", source: "From Buy Stock: BSI00100001", date: "06/03/2026, 09:01:55" },
   ];
+
+  const [showLog, setShowLog] = useState(false);
+  
+  // Mock List for Logs (image7)
+  const mockLogs = [
+    { id: "l1", title: "Subtracted 100gr — waste:", date: "06/03/2026, 10:22:08", location: "From 'Container 1 (Active)'", ref: "From Stock Adjustment: SAI00100004" },
+    { id: "l2", title: "Added 50gr — miscount corrected:", date: "06/03/2026, 10:21:30", location: "From 'Cabinet 2 (Reserve)'", ref: "From Stock Adjustment: SAI00100003" },
+    { id: "l3", title: "Subtracted 10gr — expired:", date: "06/03/2026, 10:18:10", location: "From 'Container 3 (Active)'", ref: "From Stock Adjustment: SAI00100002" },
+    { id: "l4", title: "Moved 100gr", date: "06/03/2026, 10:12:22", location: "From 'Container 1 (Active)' to 'Cabinet 2 (Reserve)'", ref: "From Move Stock: MSI00100001" },
+    { id: "l5", title: "Purchased 100gr:", date: "06/03/2026, 10:03:01", location: "Assigned to 'Unassigned'", ref: "From Buy Stock: BSI00100001" },
+    { id: "l6", title: "Subtracted 100gr — waste:", date: "06/03/2026, 10:02:08", location: "From 'Container 1 (Active)'", ref: "From Stock Adjustment: SAI00100001" },
+    { id: "l7", title: "Purchased 100gr:", date: "06/03/2026, 10:01:01", location: "Assigned to 'Container 1'", ref: "From Production: ASCIB00001" },
+  ];
+
+  const [showSettings, setShowSettings] = useState(false);
+  const [settingName, setSettingName] = useState(mockItem.name);
+  const [settingUnit, setSettingUnit] = useState(mockItem.unit);
+  
+  const handleSaveSettings = () => {
+    alert("Settings saved!");
+    setShowSettings(false);
+  };
 
   const actionButtons = [
     { id: "adjustment", label: "Stock Adjustment", icon: FileEdit, badge: false },
@@ -181,10 +203,14 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
                 className="w-full bg-white text-black text-[17px] rounded-xl py-3.5 pl-4 pr-10 appearance-none outline-none shadow-sm"
               >
                 <option value="" disabled className="text-[var(--color-ios-gray-2)]">Search</option>
-                <option value="waste">Waste</option>
-                <option value="spoiled">Spoiled</option>
-                <option value="expired">Expired</option>
-                <option value="broken">Broken</option>
+                {adjType === "subtract" && (
+                  <>
+                    <option value="waste">Waste</option>
+                    <option value="spoiled">Spoiled</option>
+                    <option value="expired">Expired</option>
+                    <option value="broken">Broken</option>
+                  </>
+                )}
                 <option value="miscount_correction">Miscount Correction</option>
                 <option value="other">Other reasons</option>
               </select>
@@ -234,7 +260,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
 
   // ------- MOVE OVERLAY -------
   if (showMove) {
-    const isFormValid = moveFrom.length > 0 && moveTo.length > 0 && moveAmount.length > 0;
+    const isFormValid = moveFrom.length > 0 && moveTo.length > 0 && moveAmount.length > 0 && moveFrom !== moveTo;
     
     return (
       <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32 overflow-y-auto">
@@ -284,6 +310,9 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
                 <ChevronDown className="text-[var(--color-ios-gray-3)]" size={20} />
               </div>
             </div>
+            {moveFrom && moveTo && moveFrom === moveTo && (
+              <p className="text-[#FF3B30] text-[12px] mt-2 ml-1">Cannot move stock to the same container.</p>
+            )}
           </div>
 
           {/* Amount */}
@@ -514,6 +543,166 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
     );
   }
 
+  // ------- LOG OVERLAY -------
+  if (showLog) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32 overflow-y-auto">
+        <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full max-w-md mx-auto">
+          <button onClick={() => setShowLog(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity w-20">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+          <h1 className="text-[17px] font-semibold text-center text-black flex-1 px-2 whitespace-nowrap">Stock Log</h1>
+          <div className="w-20"></div>
+        </div>
+
+        <div className="px-6 w-full max-w-md mx-auto flex-1 flex flex-col pt-4">
+          <div className="flex flex-col">
+            {mockLogs.map((log, idx) => (
+              <div key={log.id}>
+                <div className="flex py-4">
+                  <div className="w-10 h-10 border-[1.5px] border-[var(--color-ios-blue)] rounded-lg flex items-center justify-center mr-4 mt-1 flex-shrink-0">
+                    <ClipboardList size={22} className="text-[var(--color-ios-blue)]" />
+                  </div>
+                  <div className="flex flex-col flex-1">
+                    <span className="text-[17px] font-medium text-black mb-1 leading-tight">{log.title}</span>
+                    <span className="text-[13px] text-[var(--color-ios-gray-2)] mb-[2px]">{log.date}</span>
+                    <span className="text-[13px] text-[var(--color-ios-gray-2)] mb-[2px]">{log.location}</span>
+                    <span className="text-[13px] text-[var(--color-ios-gray-2)]">{log.ref}</span>
+                  </div>
+                </div>
+                {idx < mockLogs.length - 1 && (
+                  <div className="w-full h-px bg-[var(--color-ios-gray-4)]"></div>
+                )}
+              </div>
+            ))}
+            <div className="w-full h-px bg-[var(--color-ios-gray-4)] mt-navbar mb-4"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------- SETTINGS OVERLAY -------
+  if (showSettings) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32 overflow-y-auto">
+        <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full max-w-md mx-auto">
+          <button onClick={() => setShowSettings(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity w-20">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+          <h1 className="text-[17px] font-semibold text-center text-black flex-1 px-2 whitespace-nowrap">Item Settings</h1>
+          <div className="w-20"></div>
+        </div>
+
+        <div className="px-6 pb-32 w-full max-w-md mx-auto flex-1 flex flex-col pt-4">
+          {/* Name */}
+          <div className="mb-6">
+            <label className="block text-[15px] font-semibold text-black mb-2">Item Name</label>
+            <div className="relative flex items-center bg-white rounded-xl shadow-sm">
+              <input
+                type="text"
+                placeholder="Enter Name..."
+                value={settingName}
+                onChange={(e) => setSettingName(e.target.value)}
+                className="w-full bg-transparent text-black placeholder:text-[var(--color-ios-gray-2)] text-[17px] py-3.5 pl-4 pr-10 outline-none rounded-xl"
+              />
+              {settingName && (
+                <button onClick={() => setSettingName("")} className="absolute right-4 w-5 h-5 bg-[#8E8E93] rounded-full flex items-center justify-center active:opacity-70 transition-opacity">
+                   <X size={14} className="text-white" strokeWidth={3} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Unit */}
+          <div className="mb-6">
+            <label className="block text-[15px] font-semibold text-black mb-2">Unit</label>
+            <div className="relative flex items-center bg-white rounded-xl shadow-sm">
+              <input
+                type="text"
+                placeholder="Enter Unit..."
+                value={settingUnit}
+                onChange={(e) => setSettingUnit(e.target.value)}
+                className="w-full bg-transparent text-black placeholder:text-[var(--color-ios-gray-2)] text-[17px] py-3.5 pl-4 pr-10 outline-none rounded-xl"
+              />
+              {settingUnit && (
+                <button onClick={() => setSettingUnit("")} className="absolute right-4 w-5 h-5 bg-[#8E8E93] rounded-full flex items-center justify-center active:opacity-70 transition-opacity">
+                   <X size={14} className="text-white" strokeWidth={3} />
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-[var(--color-ios-gray-4)] mb-6"></div>
+
+          {/* Container section */}
+          <div>
+            <label className="block text-[17px] font-semibold text-black mb-4">Container</label>
+            
+            <label className="block text-[13px] font-medium text-[var(--color-ios-gray-1)] mb-2 ml-1">Active</label>
+            <div className="flex flex-col gap-3 mb-6">
+              {mockItem.activeStock.containers.map(c => (
+                <div key={`act-${c.id}`} className="bg-white rounded-xl flex items-center justify-between p-3.5 shadow-sm">
+                  <span className="text-[17px] text-[var(--color-ios-gray-1)] font-medium">{c.name} - {c.amount}{mockItem.unit}</span>
+                  <button className="text-[#FF3B30] active:opacity-70 transition-opacity p-1">
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            <label className="block text-[13px] font-medium text-[var(--color-ios-gray-1)] mb-2 ml-1">Reserve</label>
+            <div className="flex flex-col gap-3 mb-4">
+              {mockItem.reserveStock.cabinets.map(c => (
+                <div key={`res-${c.id}`} className="bg-white rounded-xl flex items-center justify-between p-3.5 shadow-sm">
+                  <span className="text-[17px] text-[var(--color-ios-gray-1)] font-medium">{c.name} - {c.amount}{mockItem.unit}</span>
+                  <button className="text-[#FF3B30] active:opacity-70 transition-opacity p-1">
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
+            
+            {/* Add new container input row */}
+            <div className="flex gap-2">
+              <input 
+                type="text" 
+                placeholder="New Container Name" 
+                className="flex-1 min-w-0 bg-transparent text-black placeholder:text-[var(--color-ios-gray-2)] text-[16px] py-3 px-4 outline-none rounded-xl border border-[var(--color-ios-gray-4)] bg-white"
+              />
+              <div className="relative w-28 shrink-0">
+                <select className="w-full h-full bg-white text-[var(--color-ios-gray-1)] text-[16px] font-medium rounded-xl pl-3 pr-8 appearance-none outline-none border border-[var(--color-ios-gray-4)]">
+                  <option>Active</option>
+                  <option>Reserve</option>
+                </select>
+                <div className="absolute right-2 top-1/2 -translate-y-1/2 pointer-events-none">
+                  <ChevronDown className="text-[var(--color-ios-gray-3)]" size={16} />
+                </div>
+              </div>
+              <button className="w-12 shrink-0 border border-[var(--color-ios-gray-4)] rounded-xl flex items-center justify-center bg-white active:bg-gray-50 transition-colors">
+                <Plus size={20} className="text-[var(--color-ios-gray-1)]" />
+              </button>
+            </div>
+
+          </div>
+        </div>
+
+        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 pb-12 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10">
+          <div className="pointer-events-auto">
+            <button 
+              onClick={handleSaveSettings}
+              className="w-full py-4 rounded-[14px] font-semibold text-[17px] transition-colors bg-[var(--color-ios-blue)] text-white active:opacity-80 shadow-sm"
+            >
+              Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // ------- MAIN INVENTORY DETAIL VIEW -------
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32 overflow-y-auto">
@@ -588,7 +777,8 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
                 else if (btn.id === "move") setShowMove(true);
                 else if (btn.id === "buy") setShowBuy(true);
                 else if (btn.id === "assign") setShowAssign(true);
-                else alert(`${btn.label} Action Coming Soon!`);
+                else if (btn.id === "log") setShowLog(true);
+                else if (btn.id === "settings") setShowSettings(true);
               }}
               className="bg-white rounded-2xl aspect-[4/3] flex flex-col items-center justify-center p-4 relative shadow-sm border border-[var(--color-ios-gray-5)] active:opacity-70 transition-opacity"
             >
