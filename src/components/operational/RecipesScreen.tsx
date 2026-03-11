@@ -305,13 +305,14 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
     return (
       <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto w-full">
-        {/* Header */}
-        <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
-          <button onClick={() => setShowAddRecipe(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
-            <ChevronLeft size={24} className="-ml-1" />
-            <span>Back</span>
-          </button>
-        </div>
+        <div className="max-w-xl mx-auto w-full bg-[#F5F5F7] min-h-full flex flex-col relative">
+          {/* Header */}
+          <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full">
+            <button onClick={() => setShowAddRecipe(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+              <ChevronLeft size={24} className="-ml-1" />
+              <span>Back</span>
+            </button>
+          </div>
         
         <div className="px-6 pb-32 max-w-xl mx-auto w-full flex-1 flex flex-col">
            <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Recipe (per pax)</h1>
@@ -336,19 +337,20 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
            <RecipeRichEditor onChange={setNewRecInstructions} />
         </div>
 
-        {/* Fixed Bottom Button */}
-        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)]">
-           <div className="max-w-xl mx-auto pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
-             <button 
-                onClick={handleSaveNewRecipe} 
-                disabled={!isFormValid} 
-                className={`w-full py-4.5 rounded-full font-semibold text-[17px] transition-colors ${
-                  isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
-                }`}
-             >
-               Create Recipe
-             </button>
-           </div>
+          {/* Fixed Bottom Button */}
+          <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)]">
+             <div className="max-w-xl mx-auto pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
+               <button 
+                  onClick={handleSaveNewRecipe} 
+                  disabled={!isFormValid} 
+                  className={`w-full py-4.5 rounded-full font-semibold text-[17px] transition-colors ${
+                    isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
+                  }`}
+               >
+                 Create Recipe
+               </button>
+             </div>
+          </div>
         </div>
       </div>
     );
@@ -362,6 +364,9 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
       <TopBar onProfileClick={onProfileClick} />
       
       <main className="px-6 flex-1 max-w-xl mx-auto w-full mt-4">
+        {/* Restore Databases Header */}
+        <h1 className="text-4xl font-bold tracking-tight text-black mb-6">Databases</h1>
+
         {/* Search Bar */}
         <div className="relative mb-6">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -418,7 +423,6 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
                       <div key={r.id} onClick={() => onViewRecipe && onViewRecipe(r.id)} className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm cursor-pointer active:opacity-80 transition-opacity">
                          <div>
                             <h3 className="font-semibold text-[17px] text-black">{r.name}</h3>
-                            <p className="text-[13px] text-[var(--color-ios-gray-2)] truncate max-w-[220px]" dangerouslySetInnerHTML={{ __html: r.instructions }}></p>
                          </div>
                          <ChevronRight size={20} className="text-[var(--color-ios-gray-2)]" />
                       </div>

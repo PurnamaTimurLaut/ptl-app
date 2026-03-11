@@ -12,8 +12,9 @@ import ProjectDetailScreen from "@/components/director/ProjectDetailScreen";
 import SplashScreen from "@/components/SplashScreen";
 import RecipesScreen from "@/components/operational/RecipesScreen";
 import TemplateDetailScreen from "@/components/operational/RecipeDetailScreen";
+import RecipeDetailScreen from "@/components/operational/RecipeDetailNewScreen";
 
-type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "operational_recipes" | "operational_recipe_detail" | "director_projects" | "director_add_project" | "director_project_detail";
+type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "operational_recipes" | "operational_recipe_detail" | "operational_cooking_recipe_detail" | "director_projects" | "director_add_project" | "director_project_detail";
 
 export default function AppRouter() {
   const { data: session, status } = useSession();
@@ -95,13 +96,17 @@ export default function AppRouter() {
         <RecipesScreen 
            onProfileClick={() => setCurrentView("dashboard")} 
            onViewTemplate={(id) => { setSelectedRecipeId(id); setCurrentView("operational_recipe_detail"); }}
-           onViewRecipe={(id) => { setSelectedRecipeId(id); setCurrentView("operational_recipe_detail"); }}
+           onViewRecipe={(id) => { setSelectedRecipeId(id); setCurrentView("operational_cooking_recipe_detail"); }}
            onNavTabChange={handleNavTabChange}
         />
       )}
 
       {currentView === "operational_recipe_detail" && selectedRecipeId && (
         <TemplateDetailScreen templateId={selectedRecipeId} onBack={() => setCurrentView("operational_recipes")} />
+      )}
+
+      {currentView === "operational_cooking_recipe_detail" && selectedRecipeId && (
+        <RecipeDetailScreen recipeId={selectedRecipeId} onBack={() => setCurrentView("operational_recipes")} />
       )}
 
       {currentView === "director_projects" && (

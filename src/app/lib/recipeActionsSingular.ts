@@ -22,12 +22,35 @@ export async function getProductionTemplateById(id: string) {
 
 export async function deleteProductionTemplate(id: string) {
   try {
+    // Due to cascading deletes based on Prisma configuration, deleting the template should clean up flows and ingredients.
+    // If cascade is not configured, we'd delete them manually first.
     await prisma.productionTemplate.delete({
       where: { id }
     });
     return { success: true };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to delete template:", error);
-    return { success: false, error: "Failed to delete production template" };
+    return { success: false, error: 'Failed to delete template: ' + (error.message || 'Unknown error') };
+  }
+}
+
+export async function getCookingRecipes() {
+  try {
+    const recipes = await prisma.cookingRecipe.findMany();
+    return { success: true, recipes };
+  } catch (error: any) {
+    return { success: false, error: "Failed to fetch recipes" };
+  }
+}
+
+export async function deleteCookingRecipe(id: string) {
+  try {
+    await prisma.cookingRecipe.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error: any) {
+    console.error("Failed to delete recipe:", error);
+    return { success: false, error: 'Failed to delete recipe: ' + (error.message || 'Unknown error') };
   }
 }
