@@ -43,21 +43,22 @@ export default function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScr
   const templateName = recipe.name.replace("Recipe for ", "");
 
   return (
-    <div className="min-h-screen bg-[#F5F5F7] flex flex-col font-sans">
+    <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans">
+      <div className="max-w-xl mx-auto w-full bg-[#F5F5F7] min-h-screen flex flex-col relative shadow-2xl pb-32">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
-        <button onClick={onBack} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+      <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full">
+        <button onClick={onBack} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity w-20">
           <ChevronLeft size={24} className="-ml-1" />
           <span>Back</span>
         </button>
-        <div className="flex items-center gap-4">
+        <h1 className="text-[17px] font-semibold text-center text-black truncate flex-1 px-2">{recipe.name}</h1>
+        <div className="flex items-center gap-4 justify-end w-20">
            <button className="text-[var(--color-ios-gray-2)] active:opacity-70 transition-opacity"><Save size={22} /></button>
-           <button className="text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"><Edit3 size={22} /></button>
+           <button onClick={() => alert("Edit mode is coming soon!")} className="text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"><Edit3 size={22} /></button>
         </div>
       </div>
       
-      <div className="px-6 pb-32 max-w-xl mx-auto w-full flex-1 flex flex-col pt-2">
-         <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">{recipe.name}</h1>
+      <div className="px-6 w-full flex-1 flex flex-col pt-6">
 
          {/* Recipe Of */}
          <div className="mb-6 flex-shrink-0">
@@ -88,8 +89,8 @@ export default function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScr
       </div>
 
       {/* Fixed Bottom Delete Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)]">
-         <div className="max-w-xl mx-auto pointer-events-auto">
+      <div className="fixed bottom-0 w-full max-w-xl left-1/2 -translate-x-1/2 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10 pb-[env(safe-area-inset-bottom)]">
+         <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
            <button 
               onClick={handleDelete} 
               className="w-full py-4 rounded-full font-semibold text-[17px] border-2 border-red-500 text-red-500 active:bg-red-50 transition-colors bg-white shadow-sm"
@@ -97,6 +98,7 @@ export default function RecipeDetailScreen({ recipeId, onBack }: RecipeDetailScr
              Delete Recipe
            </button>
          </div>
+      </div>
       </div>
     </div>
   );
