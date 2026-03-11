@@ -13,8 +13,10 @@ import SplashScreen from "@/components/SplashScreen";
 import RecipesScreen from "@/components/operational/RecipesScreen";
 import TemplateDetailScreen from "@/components/operational/RecipeDetailScreen";
 import RecipeDetailScreen from "@/components/operational/RecipeDetailNewScreen";
+import InventoryScreen from "@/components/inventory/InventoryScreen";
+import InventoryDetailScreen from "@/components/inventory/InventoryDetailScreen";
 
-type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "operational_recipes" | "operational_recipe_detail" | "operational_cooking_recipe_detail" | "director_projects" | "director_add_project" | "director_project_detail";
+type AppView = "dashboard" | "operational_batches" | "operational_batch_detail" | "operational_recipes" | "operational_recipe_detail" | "operational_cooking_recipe_detail" | "operational_inventory" | "operational_inventory_detail" | "director_projects" | "director_add_project" | "director_project_detail";
 
 export default function AppRouter() {
   const { data: session, status } = useSession();
@@ -22,6 +24,7 @@ export default function AppRouter() {
   const [selectedBatchId, setSelectedBatchId] = useState<number | null>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [selectedRecipeId, setSelectedRecipeId] = useState<string | null>(null);
+  const [selectedInventoryItemId, setSelectedInventoryItemId] = useState<string | null>(null);
   const [hasPassedSplash, setHasPassedSplash] = useState(false);
 
   if (status === "loading") {
@@ -70,7 +73,8 @@ export default function AppRouter() {
   const handleNavTabChange = (tab: 'production' | 'inventory' | 'schedules' | 'recipes') => {
     if (tab === 'production') setCurrentView('operational_batches');
     else if (tab === 'recipes') setCurrentView('operational_recipes');
-    // others can be added as they are built
+    else if (tab === 'inventory') setCurrentView('operational_inventory');
+    // schedules can be added as they are built
   };
 
   return (
@@ -107,6 +111,18 @@ export default function AppRouter() {
 
       {currentView === "operational_cooking_recipe_detail" && selectedRecipeId && (
         <RecipeDetailScreen recipeId={selectedRecipeId} onBack={() => setCurrentView("operational_recipes")} />
+      )}
+
+      {currentView === "operational_inventory" && (
+        <InventoryScreen 
+           onProfileClick={() => setCurrentView("dashboard")} 
+           onViewItem={(id) => { setSelectedInventoryItemId(id); setCurrentView("operational_inventory_detail"); }}
+           onNavTabChange={handleNavTabChange}
+        />
+      )}
+
+      {currentView === "operational_inventory_detail" && selectedInventoryItemId && (
+        <InventoryDetailScreen itemId={selectedInventoryItemId} onBack={() => setCurrentView("operational_inventory")} />
       )}
 
       {currentView === "director_projects" && (
