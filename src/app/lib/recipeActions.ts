@@ -27,9 +27,9 @@ export async function createProductionTemplate(data: { name: string }) {
   try {
     const template = await prisma.productionTemplate.create({ data });
     return { success: true, template };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Failed to create template:", error);
-    return { success: false, error: "Failed to create template (duplicate name?)" };
+    return { success: false, error: error?.message || "Failed to create template" };
   }
 }
 

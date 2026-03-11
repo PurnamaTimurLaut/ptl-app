@@ -1,10 +1,14 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ChevronRight, FileText, ChefHat, Plus } from "lucide-react";
+import { Search, ChevronRight, FileText, ChefHat, Plus, Trash2 } from "lucide-react";
 import { TopBar } from "../layout/TopBar";
 import { BottomNav } from "../layout/BottomNav";
-import { getProductionTemplates, getCookingRecipes, createProductionTemplate, createCookingRecipe } from "@/app/lib/recipeActions";
+import { 
+  getProductionTemplates, getCookingRecipes, 
+  createProductionTemplate, createCookingRecipe,
+  addTemplateIngredient, addTemplateFlow
+} from "@/app/lib/recipeActions";
 
 interface DatabasesScreenProps {
   onProfileClick?: () => void;
@@ -22,7 +26,19 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
   const [showAddTemplate, setShowAddTemplate] = useState(false);
   const [showAddRecipe, setShowAddRecipe] = useState(false);
 
+  // Template Form State
   const [newTempName, setNewTempName] = useState("");
+  const [tempIngredients, setTempIngredients] = useState<{name: string, quantity: string, unit: string}[]>([]);
+  const [tempFlows, setTempFlows] = useState<{name: string, recipeId: string}[]>([]);
+
+  // Individual Form Row State for adding
+  const [ingName, setIngName] = useState("");
+  const [ingQty, setIngQty] = useState("");
+  const [ingUnit, setIngUnit] = useState("");
+  
+  const [flowName, setFlowName] = useState("");
+  const [flowRecipeId, setFlowRecipeId] = useState("");
+
   const [newRecName, setNewRecName] = useState("");
   const [newRecInstructions, setNewRecInstructions] = useState("");
 
@@ -39,15 +55,48 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
   useEffect(() => { loadAll(); }, []);
 
-  const handleCreateTemplate = async () => {
-    if (!newTempName) return;
-    const res = await createProductionTemplate({ name: newTempName });
-    if (res.success) {
-      setNewTempName(""); setShowAddTemplate(false);
-      loadAll();
-      if(onViewTemplate && res.template) onViewTemplate(res.template.id);
-    } else alert(res.error);
+  const handleAddTempIngredientLocal = () => {
+    if(!ingName || !ingQty || !ingUnit) return alert("Fill all ingredient fields first");
+    setTempIngredients([...tempIngredients, {name: ingName, quantity: ingQty, unit: ingUnit}]);
+    setIngName(""); setIngQty(""); setIngUnit("");
   };
+
+  const handleAddTempFlowLocal = () => {
+    if(!flowName) return alert("Execution flow name is required");
+    setTempFlows([...tempFlows, {name: flowName, recipeId: flowRecipeId}]);
+    setFlowName(""); setFlowRecipeId("");
+  };
+
+  const handleSaveFullTemplate = async () => {
+    if (!newTempName) return alert("Menu Name is required");
+    
+    try {
+      // 1. Create Template Parent
+      const res = await createProductionTemplate({ name: newTempName });
+      if (!res.success || !res.template) throw new Error(res.error);
+      const tempId = res.template.id;
+
+      // 2. Add Ingredients
+      for (const i of tempIngredients) {
+         await addTemplateIngredient(tempId, { name: i.name, quantity: parseFloat(i.quantity), unit: i.unit });
+      }
+
+      // 3. Add Flows
+      for (const f of tempFlows) {
+         await addTemplateFlow(tempId, { name: f.name, recipeId: f.recipeId || undefined });
+      }
+
+      // 4. Success, load and navigate
+      setNewTempName(""); 
+      setTempIngredients([]); setTempFlows([]);
+      setShowAddTemplate(false);
+      loadAll();
+      if(onViewTemplate) onViewTemplate(tempId);
+
+    } catch (error: any) {
+      alert("Failed to save full template: " + error.message);
+    }
+  }
 
   const handleCreateRecipe = async () => {
     if (!newRecName || !newRecInstructions) return;
@@ -96,10 +145,67 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
         {showAddTemplate && (
            <div className="bg-white p-5 rounded-2xl mb-8 shadow-sm border border-[var(--color-ios-blue)]/30 animate-in fade-in slide-in-from-top-4">
               <h3 className="text-[17px] font-bold text-black mb-4 flex items-center gap-2"><FileText size={20} className="text-[var(--color-ios-blue)]"/> New Production Template</h3>
-              <input type="text" placeholder="Menu Name (e.g. Nasi Campur)" value={newTempName} onChange={e => setNewTempName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black mb-4 outline-none border border-transparent focus:border-[var(--color-ios-blue)]" />
-              <div className="flex gap-3">
+              <input type="text" placeholder="Menu Name (e.g. Nasi Campur)" value={newTempName} onChange={e => setNewTempName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black mb-6 outline-none border border-transparent focus:border-[var(--color-ios-blue)] font-semibold" />
+              
+              {/* Ingredients Builder */}
+              <div className="mb-6">
+                 <h4 className="text-[14px] font-bold text-[var(--color-ios-blue)] mb-3">Ingredients Recipe</h4>
+                 
+                 {/* List Added Ingredients */}
+                 <div className="space-y-2 mb-3">
+                   {tempIngredients.map((ing, i) => (
+                     <div key={i} className="flex justify-between items-center bg-[var(--color-ios-gray-6)] p-3 rounded-xl">
+                        <div>
+                           <p className="font-semibold text-black text-[14px]">{ing.name}</p>
+                           <p className="text-[var(--color-ios-gray-2)] text-[12px]">{ing.quantity} {ing.unit}</p>
+                        </div>
+                        <button onClick={() => setTempIngredients(tempIngredients.filter((_, idx) => idx !== i))} className="text-red-500 p-1"><Trash2 size={16}/></button>
+                     </div>
+                   ))}
+                 </div>
+
+                 <div className="flex flex-col gap-2 p-3 border border-[var(--color-ios-gray-5)] rounded-xl">
+                    <input type="text" placeholder="Ingredient Name (Text for now)" value={ingName} onChange={e => setIngName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
+                    <div className="flex gap-2">
+                       <input type="number" placeholder="Amt" value={ingQty} onChange={e => setIngQty(e.target.value)} className="flex-[2] bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
+                       <input type="text" placeholder="Unit (kg, gr)" value={ingUnit} onChange={e => setIngUnit(e.target.value)} className="flex-[2] bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
+                       <button onClick={handleAddTempIngredientLocal} className="flex-1 bg-[var(--color-ios-blue)] text-white font-bold rounded-lg flex items-center justify-center"><Plus size={18}/></button>
+                    </div>
+                 </div>
+              </div>
+
+              {/* Flows Builder */}
+              <div className="mb-6">
+                 <h4 className="text-[14px] font-bold text-[var(--color-ios-blue)] mb-3">Execution Flows</h4>
+                 
+                 {/* List Added Flows */}
+                 <div className="space-y-2 mb-3">
+                   {tempFlows.map((flow, i) => (
+                     <div key={i} className="flex justify-between items-center bg-[var(--color-ios-gray-6)] p-3 rounded-xl">
+                        <div className="flex-1">
+                           <p className="font-semibold text-black text-[14px]">{i+1}. {flow.name}</p>
+                           <p className="text-[var(--color-ios-gray-2)] text-[12px] flex items-center gap-1 mt-0.5"><ChefHat size={12}/> {recipes.find(r => r.id === flow.recipeId)?.name || 'No Recipe'}</p>
+                        </div>
+                        <button onClick={() => setTempFlows(tempFlows.filter((_, idx) => idx !== i))} className="text-red-500 p-1"><Trash2 size={16}/></button>
+                     </div>
+                   ))}
+                 </div>
+
+                 <div className="flex flex-col gap-2 p-3 border border-[var(--color-ios-gray-5)] rounded-xl">
+                    <input type="text" placeholder="Flow Name (e.g. Potong Ayam)" value={flowName} onChange={e => setFlowName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
+                    <select value={flowRecipeId} onChange={e => setFlowRecipeId(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none text-black">
+                       <option value="">Link to Cooking Recipe ...</option>
+                       {recipes.map(r => (
+                          <option key={r.id} value={r.id}>{r.name}</option>
+                       ))}
+                    </select>
+                    <button onClick={handleAddTempFlowLocal} className="w-full mt-1 bg-[var(--color-ios-blue)] text-white font-bold rounded-lg py-2 flex items-center justify-center text-[14px]">Add Flow Item</button>
+                 </div>
+              </div>
+
+              <div className="flex gap-3 pt-2 border-t border-[var(--color-ios-gray-5)]">
                  <button onClick={() => setShowAddTemplate(false)} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-gray-6)] text-black font-semibold text-[15px]">Cancel</button>
-                 <button onClick={handleCreateTemplate} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-blue)] text-white font-semibold text-[15px]">Continue to Builder</button>
+                 <button onClick={handleSaveFullTemplate} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-blue)] text-white font-semibold text-[15px]">Save Full Template</button>
               </div>
            </div>
         )}
