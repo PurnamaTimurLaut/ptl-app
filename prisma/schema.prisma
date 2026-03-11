@@ -79,3 +79,56 @@ model CookingRecipe {
   instructions String   
   flows        TemplateExecutionFlow[]
 }
+
+// --- INVENTORY MODULE ---
+
+model InventoryItem {
+  id               String   @id @default(cuid())
+  itemSequenceCode Int      @unique @default(autoincrement()) // Auto-generates 1, 2, 3...
+  name             String
+  unit             String   // e.g. gr, kg, pcs
+  status           String   @default("ok") // ok, needs_assignment, finished
+  lastAudit        DateTime @default(now())
+
+  containers       InventoryContainer[]
+  logs             InventoryLog[]
+}
+
+enum ContainerType {
+  ACTIVE
+  RESERVE
+  UNASSIGNED 
+}
+
+model InventoryContainer {
+  id        String   @id @default(cuid())
+  itemId    String
+  name      String   
+  type      ContainerType
+  amount    Float    @default(0)
+
+  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+enum LogActionType {
+  STOCK_ADJUSTMENT // SAI
+  MOVE_STOCK       // MSI
+  BUY_STOCK        // BSI
+  ASSIGN_STOCK     // ASI 
+}
+
+model InventoryLog {
+  id               String   @id @default(cuid())
+  itemId           String
+  uniqueCode       String   @unique // e.g. SAI00100001
+  actionType       LogActionType
+  
+  // Snapshot Strings 
+  title            String   
+  locationInfo     String   
+  referenceInfo    String   
+  
+  createdAt        DateTime @default(now())
+
+  item             InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}

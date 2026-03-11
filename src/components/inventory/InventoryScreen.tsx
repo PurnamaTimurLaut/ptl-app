@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { TopBar } from "../layout/TopBar";
 import { BottomNav } from "../layout/BottomNav";
-import { Search, ChevronRight, AlertTriangle, Plus, ChevronLeft, XCircle } from "lucide-react";
+import { Search, ChevronRight, AlertTriangle, Plus, ChevronLeft, XCircle, Loader2 } from "lucide-react";
+import { getInventory, addInventoryItem } from "@/app/actions/inventory";
 
 interface InventoryScreenProps {
   onProfileClick: () => void;
@@ -16,18 +17,34 @@ export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabCh
   const [showAddItem, setShowAddItem] = useState(false);
   const [newItemName, setNewItemName] = useState("");
 
-  const mockIngredients = [
-    { id: "garam", name: "Garam", stock: 3192, unit: "gr", lastAudit: "14/02/2026", status: "needs_assignment" },
-    { id: "gula", name: "Gula", stock: 0, unit: "gr", lastAudit: "01/02/2026", status: "finished" },
-    { id: "kemangi", name: "Daun Kemangi", stock: 150, unit: "gr", lastAudit: "26/02/2026", status: "ok" },
-    { id: "tomat", name: "Tomat", stock: 6, unit: "buah", lastAudit: "01/03/2026", status: "ok" },
-    { id: "sapi", name: "Daging Sapi Sirloin", stock: 4000, unit: "gr", lastAudit: "01/03/2026", status: "ok" }
-  ];
+  const [items, setItems] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleAddNewItem = () => {
-    alert(`Added new item: ${newItemName}`);
-    setShowAddItem(false);
-    setNewItemName("");
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      const data = await getInventory();
+      setItems(data);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleAddNewItem = async () => {
+    try {
+      await addInventoryItem(newItemName);
+      setNewItemName("");
+      setShowAddItem(false);
+      await loadData();
+    } catch (e) {
+      alert("Error adding item");
+    }
   };
 
   if (showAddItem) {
@@ -125,38 +142,44 @@ export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabCh
 
         {/* Item List */}
         <div className="flex flex-col gap-3">
-          {mockIngredients.map(item => (
-            <div 
-               key={item.id} 
-               onClick={() => onViewItem(item.id)}
-               className="bg-white rounded-[20px] p-5 shadow-sm border border-[var(--color-ios-gray-6)] flex items-center justify-between cursor-pointer active:opacity-70 transition-opacity"
-            >
-              <div className="flex flex-col w-full">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-[19px] font-bold text-black">{item.name}</span>
-                  {item.status === "needs_assignment" && (
-                     <div className="flex items-center gap-1 text-[#FFCC00]">
-                       <AlertTriangle size={14} />
-                       <span className="text-[10px] font-medium leading-none">New Stock Needs Assignment</span>
-                     </div>
-                  )}
-                  {item.status === "finished" && (
-                     <div className="flex items-center gap-1 text-[#FF3B30]">
-                       <AlertTriangle size={14} />
-                       <span className="text-[10px] font-medium leading-none">Stock is Finished</span>
-                     </div>
-                  )}
-                </div>
-                <div className="text-[14px] text-[var(--color-ios-gray-2)] mb-[2px]">
-                  Current Total Stock: {item.stock}{item.unit}
-                </div>
-                <div className="text-[14px] text-[var(--color-ios-gray-2)]">
-                  Last Audit: {item.lastAudit}
-                </div>
-              </div>
-              <ChevronRight className="text-[var(--color-ios-gray-3)] ml-2 flex-shrink-0" size={20} />
+          {loading ? (
+            <div className="flex justify-center items-center py-10">
+              <Loader2 className="animate-spin text-[var(--color-ios-gray-3)]" size={32} />
             </div>
-          ))}
+          ) : (
+            items.filter(i => i.name.toLowerCase().includes(searchQuery.toLowerCase())).map(item => (
+              <div 
+                 key={item.id} 
+                 onClick={() => onViewItem(item.id)}
+                 className="bg-white rounded-[20px] p-5 shadow-sm border border-[var(--color-ios-gray-6)] flex items-center justify-between cursor-pointer active:opacity-70 transition-opacity"
+              >
+                <div className="flex flex-col w-full">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[19px] font-bold text-black">{item.name}</span>
+                    {item.status === "needs_assignment" && (
+                       <div className="flex items-center gap-1 text-[#FFCC00]">
+                         <AlertTriangle size={14} />
+                         <span className="text-[10px] font-medium leading-none">New Stock Needs Assignment</span>
+                       </div>
+                    )}
+                    {item.status === "finished" && (
+                       <div className="flex items-center gap-1 text-[#FF3B30]">
+                         <AlertTriangle size={14} />
+                         <span className="text-[10px] font-medium leading-none">Stock is Finished</span>
+                       </div>
+                    )}
+                  </div>
+                  <div className="text-[14px] text-[var(--color-ios-gray-2)] mb-[2px]">
+                    Current Total Stock: {item.stock}{item.unit}
+                  </div>
+                  <div className="text-[14px] text-[var(--color-ios-gray-2)]">
+                    Last Audit: {item.lastAudit}
+                  </div>
+                </div>
+                <ChevronRight className="text-[var(--color-ios-gray-3)] ml-2 flex-shrink-0" size={20} />
+              </div>
+            ))
+          )}
           
           <button 
             onClick={() => setShowAddItem(true)}
