@@ -94,6 +94,7 @@ export default function AppRouter() {
       {currentView === "operational_recipes" && (
         <RecipesScreen 
            onProfileClick={() => setCurrentView("dashboard")} 
+           onViewTemplate={(id) => { setSelectedRecipeId(id); setCurrentView("operational_recipe_detail"); }}
            onViewRecipe={(id) => { setSelectedRecipeId(id); setCurrentView("operational_recipe_detail"); }}
            onNavTabChange={handleNavTabChange}
         />

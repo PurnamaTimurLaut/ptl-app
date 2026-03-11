@@ -268,8 +268,6 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
            </button>
         </div>
 
-        {/* Add Template Modal handling is now full-screen above the return statement */}
-
         {showAddRecipe && (
            <div className="bg-white p-5 rounded-2xl mb-8 shadow-sm border border-[var(--color-ios-blue)]/30 animate-in fade-in slide-in-from-top-4">
               <h3 className="text-[17px] font-bold text-black mb-4 flex items-center gap-2"><ChefHat size={20} className="text-[var(--color-ios-blue)]"/> New Cooking Recipe</h3>
