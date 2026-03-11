@@ -33,6 +33,34 @@ export async function createProductionTemplate(data: { name: string }) {
   }
 }
 
+export async function createCookingRecipeLinked(templateId: string, instructions: string) {
+  try {
+    const template = await prisma.productionTemplate.findUnique({ where: { id: templateId } });
+    if (!template) return { success: false, error: "Template not found" };
+
+    const recipe = await prisma.cookingRecipe.create({
+      data: {
+        name: `Recipe for ${template.name}`,
+        instructions
+      }
+    });
+
+    // Auto-link by creating a flow
+    await prisma.templateExecutionFlow.create({
+      data: {
+        name: `Prepare ${template.name}`,
+        templateId,
+        recipeId: recipe.id
+      }
+    });
+
+    return { success: true, recipe };
+  } catch (error: any) {
+    console.error("Failed to create and link recipe:", error);
+    return { success: false, error: error.message || "Failed to create recipe" };
+  }
+}
+
 export async function addTemplateIngredient(templateId: string, data: { name: string; quantity: number; unit: string }) {
   try {
     const ingredient = await prisma.templateIngredient.create({

@@ -1,14 +1,81 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Search, ChevronRight, FileText, ChefHat, Plus, Trash2, ChevronLeft, XCircle, ChevronDown } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react";
+import { Search, ChevronRight, FileText, ChefHat, Plus, Trash2, ChevronLeft, XCircle, ChevronDown, ClipboardPlus } from "lucide-react";
 import { TopBar } from "../layout/TopBar";
 import { BottomNav } from "../layout/BottomNav";
 import { 
   getProductionTemplates, getCookingRecipes, 
-  createProductionTemplate, createCookingRecipe,
+  createProductionTemplate, createCookingRecipe, createCookingRecipeLinked,
   addTemplateIngredient, addTemplateFlow
 } from "@/app/lib/recipeActions";
+
+// Custom Rich Text Editor for Recipes
+const RecipeRichEditor = ({ onChange }: { onChange: (html: string) => void }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+
+  const handleInput = () => {
+    if (editorRef.current) onChange(editorRef.current.innerHTML);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      
+      const text = editorRef.current?.innerText || "";
+      // Count lines that start with a number to figure out next sequence
+      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      let nextNum = 1;
+      
+      if (lines.length > 0) {
+        const lastLine = lines[lines.length - 1];
+        const match = lastLine.match(/^(\d+)\./);
+        if (match) nextNum = parseInt(match[1]) + 1;
+        else nextNum = lines.length + 1;
+      }
+      
+      const insertStr = text.length === 0 ? `1. ` : `<br><br>${nextNum}. `;
+      document.execCommand('insertHTML', false, insertStr);
+      handleInput();
+    }
+  };
+
+  const insertVariable = () => {
+    const val = prompt("Enter Amount & Unit (e.g. 100g)");
+    if (!val) return;
+    
+    // Grey pill exactly as designed
+    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-flex items-center justify-center bg-[#F2F2F7] text-black px-2 py-0.5 rounded-md mx-0.5 font-medium text-[14px]" data-variable="${val}">${val}</span>&nbsp;`;
+    
+    editorRef.current?.focus();
+    
+    if (editorRef.current?.innerText.trim() === "") {
+        document.execCommand('insertHTML', false, `1. ${pillHtml}`);
+    } else {
+        document.execCommand('insertHTML', false, pillHtml);
+    }
+    handleInput();
+  };
+
+  return (
+    <div className="w-full bg-white rounded-xl shadow-sm border border-[#E5E5EA] overflow-hidden flex flex-col mb-6">
+       <div className="flex justify-between items-center px-4 py-3 border-b border-[#E5E5EA]">
+          <span className="text-[17px] font-bold text-black">Recipe</span>
+          <button onClick={insertVariable} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
+             123...
+          </button>
+       </div>
+       <div 
+         ref={editorRef}
+         contentEditable
+         onInput={handleInput}
+         onKeyDown={handleKeyDown}
+         className="w-full min-h-[350px] p-4 text-[17px] text-black outline-none focus:bg-[#FAFAFA] transition-colors whitespace-pre-wrap leading-relaxed"
+         suppressContentEditableWarning
+       />
+    </div>
+  );
+};
 
 interface DatabasesScreenProps {
   onProfileClick?: () => void;
@@ -38,7 +105,8 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
   const [flowName, setFlowName] = useState("");
   const [flowRecipeId, setFlowRecipeId] = useState("");
 
-  const [newRecName, setNewRecName] = useState("");
+  // Recipe Form State
+  const [selectedTemplateForRecipe, setSelectedTemplateForRecipe] = useState("");
   const [newRecInstructions, setNewRecInstructions] = useState("");
 
   const loadAll = async () => {
@@ -75,22 +143,18 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     if (!newTempName) return alert("Menu Name is required");
     
     try {
-      // 1. Create Template Parent
       const res = await createProductionTemplate({ name: newTempName });
       if (!res.success || !res.template) throw new Error(res.error);
       const tempId = res.template.id;
 
-      // 2. Add Ingredients
       for (const i of tempIngredients) {
          await addTemplateIngredient(tempId, { name: i.name, quantity: parseFloat(i.quantity), unit: i.unit });
       }
 
-      // 3. Add Flows
       for (const f of tempFlows) {
          await addTemplateFlow(tempId, { name: f.name, recipeId: f.recipeId || undefined });
       }
 
-      // 4. Success, load and navigate
       setNewTempName(""); 
       setTempIngredients([]); setTempFlows([]);
       setShowAddTemplate(false);
@@ -102,21 +166,16 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     }
   }
 
-  const handleCreateRecipe = async () => {
-    if (!newRecName || !newRecInstructions) return;
+  const handleSaveNewRecipe = async () => {
+    if (!selectedTemplateForRecipe || !newRecInstructions) return alert("Please select a template and write instructions.");
     
-    // Validate Word Count (< 500)
-    const wordCount = newRecInstructions.trim().split(/\s+/).length;
-    if (wordCount > 500) {
-      alert(`Cooking instructions cannot exceed 500 words. (Currently: ${wordCount})`);
-      return;
-    }
-
-    const res = await createCookingRecipe({ name: newRecName, instructions: newRecInstructions });
+    const res = await createCookingRecipeLinked(selectedTemplateForRecipe, newRecInstructions);
     if (res.success) {
-      setNewRecName(""); setNewRecInstructions(""); setShowAddRecipe(false);
+      setSelectedTemplateForRecipe(""); setNewRecInstructions(""); setShowAddRecipe(false);
       loadAll();
-    } else alert(res.error);
+    } else {
+      alert(res.error);
+    }
   };
 
   // ------------- FULL SCREEN RENDER FOR CREATE TEMPLATE -------------
@@ -124,7 +183,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     const isFormValid = newTempName.length > 0 && tempIngredients.length > 0 && tempFlows.length > 0;
 
     return (
-      <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto">
+      <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto w-full">
         {/* Header */}
         <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
           <button onClick={() => setShowAddTemplate(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
@@ -133,7 +192,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
           </button>
         </div>
         
-        <div className="px-6 pb-32 max-w-xl mx-auto w-full">
+        <div className="px-6 pb-32 max-w-xl mx-auto w-full flex-1">
            <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Production Template (per pax)</h1>
 
            {/* Menu Name */}
@@ -240,15 +299,70 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     );
   }
 
-  // ------------- END FULL SCREEN RENDER -------------
+  // ------------- FULL SCREEN RENDER FOR CREATE RECIPE -------------
+  if (showAddRecipe) {
+    const isFormValid = selectedTemplateForRecipe.length > 0 && newRecInstructions.length > 0;
+
+    return (
+      <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto w-full">
+        {/* Header */}
+        <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
+          <button onClick={() => setShowAddRecipe(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+        </div>
+        
+        <div className="px-6 pb-32 max-w-xl mx-auto w-full flex-1 flex flex-col">
+           <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Recipe (per pax)</h1>
+
+           {/* Recipe Of */}
+           <div className="mb-6 flex-shrink-0">
+             <h2 className="text-[17px] font-bold text-black mb-3">Recipe of</h2>
+             <div className="relative">
+               <select 
+                 value={selectedTemplateForRecipe} 
+                 onChange={e => setSelectedTemplateForRecipe(e.target.value)} 
+                 className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm appearance-none" 
+               >
+                 <option value="" disabled>Search or Select Template...</option>
+                 {templates.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+               </select>
+               <ChevronDown size={20} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#C7C7CC] pointer-events-none" />
+             </div>
+           </div>
+
+           {/* Custom Recipe Editor */}
+           <RecipeRichEditor onChange={setNewRecInstructions} />
+        </div>
+
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)]">
+           <div className="max-w-xl mx-auto pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
+             <button 
+                onClick={handleSaveNewRecipe} 
+                disabled={!isFormValid} 
+                className={`w-full py-4.5 rounded-full font-semibold text-[17px] transition-colors ${
+                  isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
+                }`}
+             >
+               Create Recipe
+             </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------------- END FULL SCREEN RENDERS -------------
+
 
   return (
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-24">
       <TopBar onProfileClick={onProfileClick} />
       
-      <main className="px-6 flex-1 max-w-xl mx-auto w-full">
-        <h1 className="text-4xl font-bold tracking-tight text-black mb-6">Databases</h1>
-
+      <main className="px-6 flex-1 max-w-xl mx-auto w-full mt-4">
+        {/* Search Bar */}
         <div className="relative mb-6">
           <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
             <Search size={20} className="text-[var(--color-ios-gray-2)]" />
@@ -256,34 +370,28 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
           <input type="text" placeholder="Search databases" className="w-full bg-[var(--color-ios-gray-5)] rounded-xl py-2 pl-10 pr-4 text-[17px] text-black placeholder:text-[var(--color-ios-gray-2)] focus:outline-none" />
         </div>
 
-        {/* Action Buttons */}
-        <div className="flex gap-3 mb-8">
-           <button onClick={() => { setShowAddTemplate(true); setShowAddRecipe(false); }} className="flex-1 py-4 px-2 rounded-2xl border-2 border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-bold text-[14px] flex flex-col items-center justify-center gap-2 hover:bg-[var(--color-ios-blue)]/5 transition-colors text-center">
-              <FileText size={28} strokeWidth={2} />
-              <span className="leading-tight">Create New<br/>Production Template</span>
-           </button>
-           <button onClick={() => { setShowAddRecipe(true); setShowAddTemplate(false); }} className="flex-1 py-4 px-2 rounded-2xl border-2 border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-bold text-[14px] flex flex-col items-center justify-center gap-2 hover:bg-[var(--color-ios-blue)]/5 transition-colors text-center">
-              <ChefHat size={28} strokeWidth={2} />
-              <span className="leading-tight">Create New<br/>Cooking Recipe</span>
-           </button>
-        </div>
-
-        {showAddRecipe && (
-           <div className="bg-white p-5 rounded-2xl mb-8 shadow-sm border border-[var(--color-ios-blue)]/30 animate-in fade-in slide-in-from-top-4">
-              <h3 className="text-[17px] font-bold text-black mb-4 flex items-center gap-2"><ChefHat size={20} className="text-[var(--color-ios-blue)]"/> New Cooking Recipe</h3>
-              <input type="text" placeholder="Recipe Name (e.g. Resep Bumbu Kuning)" value={newRecName} onChange={e => setNewRecName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black mb-3 outline-none border border-transparent focus:border-[var(--color-ios-blue)]" />
-              <textarea 
-                 placeholder="1. Prepare ingredients...&#10;2. Cook on medium heat...&#10;(Max 500 words)" 
-                 value={newRecInstructions} onChange={e => setNewRecInstructions(e.target.value)} 
-                 rows={6}
-                 className="w-full bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black mb-4 outline-none resize-none border border-transparent focus:border-[var(--color-ios-blue)]" 
-              />
-              <div className="flex gap-3">
-                 <button onClick={() => setShowAddRecipe(false)} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-gray-6)] text-black font-semibold text-[15px]">Cancel</button>
-                 <button onClick={handleCreateRecipe} disabled={!newRecName || !newRecInstructions} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-blue)] text-white font-semibold text-[15px] disabled:opacity-50">Save Recipe</button>
-              </div>
+        {/* Minimalist Action Buttons */}
+        <div className="flex gap-4 mb-8">
+           <div className="flex-1 flex flex-col gap-3">
+              <button 
+                onClick={() => { setShowAddTemplate(true); setShowAddRecipe(false); }} 
+                className="w-full aspect-[4/3] bg-white rounded-[28px] shadow-sm border border-[#E5E5EA] flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all"
+              >
+                 <ClipboardPlus size={36} className="text-[var(--color-ios-blue)]" strokeWidth={1.5} />
+              </button>
+              <p className="text-center text-[15px] font-medium text-black leading-tight px-1">Create New Production<br/>Template (per pax)</p>
            </div>
-        )}
+           
+           <div className="flex-1 flex flex-col gap-3">
+              <button 
+                onClick={() => { setShowAddRecipe(true); setShowAddTemplate(false); }} 
+                className="w-full aspect-[4/3] bg-white rounded-[28px] shadow-sm border border-[#E5E5EA] flex items-center justify-center hover:bg-gray-50 active:scale-95 transition-all"
+              >
+                 <ChefHat size={36} className="text-[var(--color-ios-blue)]" strokeWidth={1.5} />
+              </button>
+              <p className="text-center text-[15px] font-medium text-black leading-tight px-1">Create New Recipe<br/>(per pax)</p>
+           </div>
+        </div>
 
         {/* Existing Lists */}
         {isLoading ? <p className="text-center mt-10 text-[var(--color-ios-gray-2)]">Loading Databases...</p> : (
@@ -310,7 +418,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
                       <div key={r.id} onClick={() => onViewRecipe && onViewRecipe(r.id)} className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm cursor-pointer active:opacity-80 transition-opacity">
                          <div>
                             <h3 className="font-semibold text-[17px] text-black">{r.name}</h3>
-                            <p className="text-[13px] text-[var(--color-ios-gray-2)] truncate max-w-[220px]">{r.instructions}</p>
+                            <p className="text-[13px] text-[var(--color-ios-gray-2)] truncate max-w-[220px]" dangerouslySetInnerHTML={{ __html: r.instructions }}></p>
                          </div>
                          <ChevronRight size={20} className="text-[var(--color-ios-gray-2)]" />
                       </div>
@@ -319,7 +427,6 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
              </div>
            </div>
         )}
-
       </main>
       <BottomNav activeTab="recipes" onTabChange={onNavTabChange} />
     </div>
