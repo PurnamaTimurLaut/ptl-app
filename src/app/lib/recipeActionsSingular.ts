@@ -19,3 +19,15 @@ export async function getProductionTemplateById(id: string) {
     return { success: false, error: "Failed to fetch production template" };
   }
 }
+
+export async function deleteProductionTemplate(id: string) {
+  try {
+    await prisma.productionTemplate.delete({
+      where: { id }
+    });
+    return { success: true };
+  } catch (error) {
+    console.error("Failed to delete template:", error);
+    return { success: false, error: "Failed to delete production template" };
+  }
+}

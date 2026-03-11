@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Search, ChevronRight, FileText, ChefHat, Plus, Trash2 } from "lucide-react";
+import { Search, ChevronRight, FileText, ChefHat, Plus, Trash2, ChevronLeft, XCircle, ChevronDown } from "lucide-react";
 import { TopBar } from "../layout/TopBar";
 import { BottomNav } from "../layout/BottomNav";
 import { 
@@ -33,8 +33,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
   // Individual Form Row State for adding
   const [ingName, setIngName] = useState("");
-  const [ingQty, setIngQty] = useState("");
-  const [ingUnit, setIngUnit] = useState("");
+  const [ingAmount, setIngAmount] = useState("");
   
   const [flowName, setFlowName] = useState("");
   const [flowRecipeId, setFlowRecipeId] = useState("");
@@ -56,9 +55,14 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
   useEffect(() => { loadAll(); }, []);
 
   const handleAddTempIngredientLocal = () => {
-    if(!ingName || !ingQty || !ingUnit) return alert("Fill all ingredient fields first");
-    setTempIngredients([...tempIngredients, {name: ingName, quantity: ingQty, unit: ingUnit}]);
-    setIngName(""); setIngQty(""); setIngUnit("");
+    if(!ingName || !ingAmount) return alert("Fill all ingredient fields first");
+    
+    // Parse amount like "200g" into qty=200, unit="g"
+    const parsedQty = parseFloat(ingAmount) || 0;
+    const parsedUnit = ingAmount.replace(/[0-9.]/g, '').trim() || "pcs";
+
+    setTempIngredients([...tempIngredients, {name: ingName, quantity: parsedQty.toString(), unit: parsedUnit}]);
+    setIngName(""); setIngAmount("");
   };
 
   const handleAddTempFlowLocal = () => {
@@ -115,6 +119,129 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     } else alert(res.error);
   };
 
+  // ------------- FULL SCREEN RENDER FOR CREATE TEMPLATE -------------
+  if (showAddTemplate) {
+    const isFormValid = newTempName.length > 0 && tempIngredients.length > 0 && tempFlows.length > 0;
+
+    return (
+      <div className="fixed inset-0 bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
+          <button onClick={() => setShowAddTemplate(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+        </div>
+        
+        <div className="px-6 pb-32 max-w-xl mx-auto w-full">
+           <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Production Template (per pax)</h1>
+
+           {/* Menu Name */}
+           <div className="mb-6">
+             <h2 className="text-[17px] font-bold text-black mb-3">Menu Name</h2>
+             <div className="relative">
+               <input 
+                 type="text" 
+                 placeholder="(e.g. Sapi Teriyaki)" 
+                 value={newTempName} 
+                 onChange={e => setNewTempName(e.target.value)} 
+                 className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm" 
+               />
+               {newTempName && (
+                 <button onClick={() => setNewTempName("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                   <XCircle size={20} className="text-[#C7C7CC] fill-[#C7C7CC] text-white" />
+                 </button>
+               )}
+             </div>
+           </div>
+
+           <hr className="border-[#E5E5EA] mb-6" />
+
+           {/* Ingredients */}
+           <div className="mb-6">
+             <h2 className="text-[17px] font-bold text-black mb-3">Ingredients I</h2>
+             
+             {/* List mapped ingredients */}
+             {tempIngredients.length > 0 && (
+               <div className="space-y-3 mb-4">
+                 {tempIngredients.map((ing, i) => (
+                   <div key={i} className="flex gap-3 items-center">
+                      <div className="flex-[2] bg-white rounded-xl py-3.5 px-4 shadow-sm text-[17px] text-black">{ing.name}</div>
+                      <div className="flex-[1] bg-white rounded-xl py-3.5 px-4 shadow-sm text-[17px] text-black">{ing.quantity}{ing.unit}</div>
+                      <button onClick={() => setTempIngredients(tempIngredients.filter((_, idx) => idx !== i))} className="text-red-500 p-2"><Trash2 size={20}/></button>
+                   </div>
+                 ))}
+               </div>
+             )}
+
+             {/* Add Row */}
+             <div className="flex gap-3 mb-4">
+                <div className="flex-[2] relative">
+                   <input type="text" placeholder="Search" value={ingName} onChange={e => setIngName(e.target.value)} className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm" />
+                   <ChevronDown size={20} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#C7C7CC] pointer-events-none" />
+                </div>
+                <div className="flex-1">
+                   <input type="text" placeholder="Amount..." value={ingAmount} onChange={e => setIngAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTempIngredientLocal()} className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm" />
+                </div>
+             </div>
+             
+             <button onClick={handleAddTempIngredientLocal} className="w-full py-3.5 rounded-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-medium text-[16px] flex items-center justify-center gap-2 bg-white active:bg-blue-50 transition-colors">
+               <Plus size={18} strokeWidth={2.5} /> Add Ingredients
+             </button>
+           </div>
+
+           <hr className="border-[#E5E5EA] mb-6" />
+
+           {/* Flows */}
+           <div className="mb-8">
+             <h2 className="text-[17px] font-bold text-black mb-3">Execution Flow I</h2>
+             
+             {/* List mapped flows */}
+             {tempFlows.length > 0 && (
+               <div className="space-y-3 mb-4">
+                 {tempFlows.map((flow, i) => (
+                   <div key={i} className="flex gap-3 items-center">
+                      <div className="flex-1 bg-white rounded-xl py-3.5 px-4 shadow-sm text-[17px] text-black">{flow.name}</div>
+                      <button onClick={() => setTempFlows(tempFlows.filter((_, idx) => idx !== i))} className="text-red-500 p-2"><Trash2 size={20}/></button>
+                   </div>
+                 ))}
+               </div>
+             )}
+             
+             <div className="relative mb-4">
+               <input type="text" placeholder="(e.g. Velvet Sapi)" value={flowName} onChange={e => setFlowName(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTempFlowLocal()} className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm" />
+                 {flowName && (
+                   <button onClick={() => setFlowName("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                     <XCircle size={20} className="text-[#C7C7CC] fill-[#C7C7CC] text-white" />
+                   </button>
+                 )}
+             </div>
+             <button onClick={handleAddTempFlowLocal} className="w-full py-3.5 rounded-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-medium text-[16px] flex items-center justify-center gap-2 bg-white active:bg-blue-50 transition-colors">
+               <Plus size={18} strokeWidth={2.5} /> Add Execution Flow
+             </button>
+           </div>
+        </div>
+
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none">
+           <div className="max-w-xl mx-auto pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
+             <button 
+                onClick={handleSaveFullTemplate} 
+                disabled={!isFormValid} 
+                className={`w-full py-4.5 rounded-full font-semibold text-[17px] transition-colors ${
+                  isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
+                }`}
+             >
+               Create Template
+             </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------------- END FULL SCREEN RENDER -------------
+
   return (
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-24">
       <TopBar onProfileClick={onProfileClick} />
@@ -141,74 +268,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
            </button>
         </div>
 
-        {/* Creation Forms */}
-        {showAddTemplate && (
-           <div className="bg-white p-5 rounded-2xl mb-8 shadow-sm border border-[var(--color-ios-blue)]/30 animate-in fade-in slide-in-from-top-4">
-              <h3 className="text-[17px] font-bold text-black mb-4 flex items-center gap-2"><FileText size={20} className="text-[var(--color-ios-blue)]"/> New Production Template</h3>
-              <input type="text" placeholder="Menu Name (e.g. Nasi Campur)" value={newTempName} onChange={e => setNewTempName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black mb-6 outline-none border border-transparent focus:border-[var(--color-ios-blue)] font-semibold" />
-              
-              {/* Ingredients Builder */}
-              <div className="mb-6">
-                 <h4 className="text-[14px] font-bold text-[var(--color-ios-blue)] mb-3">Ingredients Recipe</h4>
-                 
-                 {/* List Added Ingredients */}
-                 <div className="space-y-2 mb-3">
-                   {tempIngredients.map((ing, i) => (
-                     <div key={i} className="flex justify-between items-center bg-[var(--color-ios-gray-6)] p-3 rounded-xl">
-                        <div>
-                           <p className="font-semibold text-black text-[14px]">{ing.name}</p>
-                           <p className="text-[var(--color-ios-gray-2)] text-[12px]">{ing.quantity} {ing.unit}</p>
-                        </div>
-                        <button onClick={() => setTempIngredients(tempIngredients.filter((_, idx) => idx !== i))} className="text-red-500 p-1"><Trash2 size={16}/></button>
-                     </div>
-                   ))}
-                 </div>
-
-                 <div className="flex flex-col gap-2 p-3 border border-[var(--color-ios-gray-5)] rounded-xl">
-                    <input type="text" placeholder="Ingredient Name (Text for now)" value={ingName} onChange={e => setIngName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
-                    <div className="flex gap-2">
-                       <input type="number" placeholder="Amt" value={ingQty} onChange={e => setIngQty(e.target.value)} className="flex-[2] bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
-                       <input type="text" placeholder="Unit (kg, gr)" value={ingUnit} onChange={e => setIngUnit(e.target.value)} className="flex-[2] bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
-                       <button onClick={handleAddTempIngredientLocal} className="flex-1 bg-[var(--color-ios-blue)] text-white font-bold rounded-lg flex items-center justify-center"><Plus size={18}/></button>
-                    </div>
-                 </div>
-              </div>
-
-              {/* Flows Builder */}
-              <div className="mb-6">
-                 <h4 className="text-[14px] font-bold text-[var(--color-ios-blue)] mb-3">Execution Flows</h4>
-                 
-                 {/* List Added Flows */}
-                 <div className="space-y-2 mb-3">
-                   {tempFlows.map((flow, i) => (
-                     <div key={i} className="flex justify-between items-center bg-[var(--color-ios-gray-6)] p-3 rounded-xl">
-                        <div className="flex-1">
-                           <p className="font-semibold text-black text-[14px]">{i+1}. {flow.name}</p>
-                           <p className="text-[var(--color-ios-gray-2)] text-[12px] flex items-center gap-1 mt-0.5"><ChefHat size={12}/> {recipes.find(r => r.id === flow.recipeId)?.name || 'No Recipe'}</p>
-                        </div>
-                        <button onClick={() => setTempFlows(tempFlows.filter((_, idx) => idx !== i))} className="text-red-500 p-1"><Trash2 size={16}/></button>
-                     </div>
-                   ))}
-                 </div>
-
-                 <div className="flex flex-col gap-2 p-3 border border-[var(--color-ios-gray-5)] rounded-xl">
-                    <input type="text" placeholder="Flow Name (e.g. Potong Ayam)" value={flowName} onChange={e => setFlowName(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none" />
-                    <select value={flowRecipeId} onChange={e => setFlowRecipeId(e.target.value)} className="w-full bg-[var(--color-ios-gray-6)] rounded-lg py-2 px-3 text-[14px] outline-none text-black">
-                       <option value="">Link to Cooking Recipe ...</option>
-                       {recipes.map(r => (
-                          <option key={r.id} value={r.id}>{r.name}</option>
-                       ))}
-                    </select>
-                    <button onClick={handleAddTempFlowLocal} className="w-full mt-1 bg-[var(--color-ios-blue)] text-white font-bold rounded-lg py-2 flex items-center justify-center text-[14px]">Add Flow Item</button>
-                 </div>
-              </div>
-
-              <div className="flex gap-3 pt-2 border-t border-[var(--color-ios-gray-5)]">
-                 <button onClick={() => setShowAddTemplate(false)} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-gray-6)] text-black font-semibold text-[15px]">Cancel</button>
-                 <button onClick={handleSaveFullTemplate} className="flex-1 py-3 rounded-xl bg-[var(--color-ios-blue)] text-white font-semibold text-[15px]">Save Full Template</button>
-              </div>
-           </div>
-        )}
+        {/* Add Template Modal handling is now full-screen above the return statement */}
 
         {showAddRecipe && (
            <div className="bg-white p-5 rounded-2xl mb-8 shadow-sm border border-[var(--color-ios-blue)]/30 animate-in fade-in slide-in-from-top-4">
