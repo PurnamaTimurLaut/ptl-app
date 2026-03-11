@@ -181,7 +181,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
         </div>
 
         {/* Fixed Bottom Button */}
-        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)] z-10">
+        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 pb-12 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10">
            <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
              <button 
                 onClick={handleConfirmAdjustment} 

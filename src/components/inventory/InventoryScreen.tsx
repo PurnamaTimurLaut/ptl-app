@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { TopBar } from "../layout/TopBar";
 import { BottomNav } from "../layout/BottomNav";
-import { Search, ChevronRight, AlertTriangle } from "lucide-react";
+import { Search, ChevronRight, AlertTriangle, Plus, ChevronLeft, XCircle } from "lucide-react";
 
 interface InventoryScreenProps {
   onProfileClick: () => void;
@@ -12,6 +12,9 @@ interface InventoryScreenProps {
 export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabChange }: InventoryScreenProps) {
   const [activeTab, setActiveTab] = useState<"ingredients" | "finished">("ingredients");
   const [searchQuery, setSearchQuery] = useState("");
+  
+  const [showAddItem, setShowAddItem] = useState(false);
+  const [newItemName, setNewItemName] = useState("");
 
   const mockIngredients = [
     { id: "garam", name: "Garam", stock: 3192, unit: "gr", lastAudit: "14/02/2026", status: "needs_assignment" },
@@ -20,6 +23,64 @@ export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabCh
     { id: "tomat", name: "Tomat", stock: 6, unit: "buah", lastAudit: "01/03/2026", status: "ok" },
     { id: "sapi", name: "Daging Sapi Sirloin", stock: 4000, unit: "gr", lastAudit: "01/03/2026", status: "ok" }
   ];
+
+  const handleAddNewItem = () => {
+    alert(`Added new item: ${newItemName}`);
+    setShowAddItem(false);
+    setNewItemName("");
+  };
+
+  if (showAddItem) {
+    const isFormValid = newItemName.length > 0;
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32 overflow-y-auto">
+        {/* Header */}
+        <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full max-w-md mx-auto">
+          <button onClick={() => setShowAddItem(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity w-20">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+          <h1 className="text-[17px] font-semibold text-center text-black flex-1 px-2 whitespace-nowrap">Add New Item</h1>
+          <div className="w-20"></div>{/* Spacer */}
+        </div>
+
+        <div className="px-6 w-full max-w-md mx-auto flex-1 flex flex-col pt-6">
+          <div className="mb-6">
+            <label className="block text-[15px] font-semibold text-black mb-2">Item Name</label>
+            <div className="relative flex items-center bg-white rounded-xl shadow-sm">
+              <input
+                type="text"
+                placeholder="Item Name (e.g. Daun Kemangi)"
+                value={newItemName}
+                onChange={(e) => setNewItemName(e.target.value)}
+                className="w-full bg-transparent text-black placeholder:text-[var(--color-ios-gray-2)] text-[17px] py-3.5 pl-4 pr-10 outline-none rounded-xl border border-[var(--color-ios-gray-5)]"
+              />
+              {newItemName && (
+                <button onClick={() => setNewItemName("")} className="absolute right-3 text-[var(--color-ios-gray-3)] active:text-[var(--color-ios-gray-2)] transition-colors">
+                  <XCircle size={20} className="fill-[var(--color-ios-gray-3)] text-white" />
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 pb-12 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10">
+           <div className="pointer-events-auto">
+             <button 
+                onClick={handleAddNewItem} 
+                disabled={!isFormValid} 
+                className={`w-full py-4 rounded-[14px] font-semibold text-[17px] transition-colors shadow-sm ${
+                  isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[var(--color-ios-blue)]/50 text-white cursor-not-allowed'
+                }`}
+             >
+               Add New Item
+             </button>
+           </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32">
@@ -96,6 +157,13 @@ export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabCh
               <ChevronRight className="text-[var(--color-ios-gray-3)] ml-2 flex-shrink-0" size={20} />
             </div>
           ))}
+          
+          <button 
+            onClick={() => setShowAddItem(true)}
+            className="w-full py-4 mt-2 rounded-[24px] border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] text-[17px] font-semibold flex items-center justify-center gap-2 active:bg-[var(--color-ios-blue)]/10 transition-colors"
+          >
+            <Plus size={20} /> Add New Item
+          </button>
         </div>
       </div>
 
