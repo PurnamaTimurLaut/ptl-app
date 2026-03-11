@@ -183,17 +183,16 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     const isFormValid = newTempName.length > 0 && tempIngredients.length > 0 && tempFlows.length > 0;
 
     return (
-      <div className="fixed inset-0 bg-[var(--color-ios-gray-6)] z-50 flex flex-col font-sans overflow-y-auto w-full">
-        <div className="max-w-xl mx-auto w-full bg-[#F5F5F7] min-h-screen flex flex-col relative shadow-2xl">
-          {/* Header */}
-          <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10">
-            <button onClick={() => setShowAddTemplate(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
-              <ChevronLeft size={24} className="-ml-1" />
-              <span>Back</span>
-            </button>
-          </div>
-          
-          <div className="px-6 pb-32 w-full flex-1">
+      <div className="fixed inset-0 w-full max-w-md mx-auto bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full">
+          <button onClick={() => setShowAddTemplate(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+        </div>
+        
+        <div className="px-6 pb-32 w-full flex-1">
            <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Production Template (per pax)</h1>
 
            {/* Menu Name */}
@@ -283,7 +282,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
         </div>
 
         {/* Fixed Bottom Button */}
-        <div className="fixed bottom-0 w-full max-w-xl left-1/2 -translate-x-1/2 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10 pb-[env(safe-area-inset-bottom)]">
+        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10 pb-[env(safe-area-inset-bottom)]">
            <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
              <button 
                 onClick={handleSaveFullTemplate} 
@@ -296,7 +295,6 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
              </button>
            </div>
         </div>
-        </div>
       </div>
     );
   }
@@ -306,17 +304,16 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     const isFormValid = selectedTemplateForRecipe.length > 0 && newRecInstructions.length > 0;
 
     return (
-      <div className="fixed inset-0 bg-[var(--color-ios-gray-6)] z-50 flex flex-col font-sans overflow-y-auto w-full">
-        <div className="max-w-xl mx-auto w-full bg-[#F5F5F7] min-h-screen flex flex-col relative shadow-2xl">
-          {/* Header */}
-          <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full">
-            <button onClick={() => setShowAddRecipe(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
-              <ChevronLeft size={24} className="-ml-1" />
-              <span>Back</span>
-            </button>
-          </div>
-        
-          <div className="px-6 pb-32 w-full flex-1 flex flex-col">
+      <div className="fixed inset-0 w-full max-w-md mx-auto bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto shadow-2xl">
+        {/* Header */}
+        <div className="flex items-center px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full">
+          <button onClick={() => setShowAddRecipe(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+        </div>
+      
+        <div className="px-6 pb-32 w-full flex-1 flex flex-col">
            <h1 className="text-[20px] font-bold text-center text-black mb-8 px-4">Create New Recipe (per pax)</h1>
 
            {/* Recipe Of */}
@@ -339,20 +336,19 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
            <RecipeRichEditor onChange={setNewRecInstructions} />
         </div>
 
-          {/* Fixed Bottom Button */}
-          <div className="fixed bottom-0 w-full max-w-xl left-1/2 -translate-x-1/2 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)] z-10">
-             <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
-               <button 
-                  onClick={handleSaveNewRecipe} 
-                  disabled={!isFormValid} 
-                  className={`w-full py-4 rounded-full font-semibold text-[17px] transition-colors ${
-                    isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
-                  }`}
-               >
-                 Create Recipe
-               </button>
-             </div>
-          </div>
+        {/* Fixed Bottom Button */}
+        <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none pb-[env(safe-area-inset-bottom)] z-10">
+           <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
+             <button 
+                onClick={handleSaveNewRecipe} 
+                disabled={!isFormValid} 
+                className={`w-full py-4 rounded-full font-semibold text-[17px] transition-colors ${
+                  isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
+                }`}
+             >
+               Create Recipe
+             </button>
+           </div>
         </div>
       </div>
     );
