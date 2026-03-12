@@ -19,7 +19,7 @@ export async function getProductionTemplates() {
     });
     return { success: true, templates };
   } catch (error) {
-    console.error("Failed to fetch templates:", error);
+    console.error("DEBUG: Failed to fetch templates:", error);
     return { success: false, error: "Failed to fetch production templates" };
   }
 }
@@ -119,7 +119,7 @@ export async function getCookingRecipes() {
     const recipes = await prisma.cookingRecipe.findMany();
     return { success: true, recipes };
   } catch (error) {
-    console.error("Failed to fetch cooking recipes:", error);
+    console.error("DEBUG: Failed to fetch cooking recipes:", error);
     return { success: false, error: "Failed to fetch cooking recipes" };
   }
 }

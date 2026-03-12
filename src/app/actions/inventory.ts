@@ -25,31 +25,36 @@ async function generateUniqueCode(itemId: string, actionType: LogActionType, pre
 // --- QUERIES ---
 
 export async function getInventory() {
-  const items = await prisma.inventoryItem.findMany({
-    include: {
-      containers: true,
-    },
-    orderBy: { name: 'asc' }
-  });
-
-  return items.map((item: any) => {
-    let activeStock = 0;
-    let reserveStock = 0;
-    
-    item.containers.forEach((c: any) => {
-      if (c.type === 'ACTIVE') activeStock += c.amount;
-      else if (c.type === 'RESERVE') reserveStock += c.amount;
+  try {
+    const items = await prisma.inventoryItem.findMany({
+      include: {
+        containers: true,
+      },
+      orderBy: { name: 'asc' }
     });
 
-    return {
-      id: item.id,
-      name: item.name,
-      stock: activeStock + reserveStock,
-      unit: item.unit,
-      status: item.status,
-      lastAudit: item.lastAudit.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
-    };
-  });
+    return items.map((item: any) => {
+      let activeStock = 0;
+      let reserveStock = 0;
+      
+      item.containers.forEach((c: any) => {
+        if (c.type === 'ACTIVE') activeStock += c.amount;
+        else if (c.type === 'RESERVE') reserveStock += c.amount;
+      });
+
+      return {
+        id: item.id,
+        name: item.name,
+        stock: activeStock + reserveStock,
+        unit: item.unit,
+        status: item.status,
+        lastAudit: item.lastAudit.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }),
+      };
+    });
+  } catch (error) {
+    console.error("Failed to fetch inventory:", error);
+    return [];
+  }
 }
 
 export async function getInventoryItem(id: string) {
