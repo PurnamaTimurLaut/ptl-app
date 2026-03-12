@@ -22,15 +22,20 @@ export async function getProductionTemplateById(id: string) {
 
 export async function deleteProductionTemplate(id: string) {
   try {
-    // Due to cascading deletes based on Prisma configuration, deleting the template should clean up flows and ingredients.
-    // If cascade is not configured, we'd delete them manually first.
-    await prisma.productionTemplate.delete({
-      where: { id }
-    });
+    await prisma.productionTemplate.delete({ where: { id } });
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete template:", error);
     return { success: false, error: 'Failed to delete template: ' + (error.message || 'Unknown error') };
+  }
+}
+
+export async function updateProductionTemplateName(id: string, name: string) {
+  try {
+    await prisma.productionTemplate.update({ where: { id }, data: { name } });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }
 
@@ -45,12 +50,37 @@ export async function getCookingRecipes() {
 
 export async function deleteCookingRecipe(id: string) {
   try {
-    await prisma.cookingRecipe.delete({
-      where: { id }
-    });
+    await prisma.cookingRecipe.delete({ where: { id } });
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete recipe:", error);
     return { success: false, error: 'Failed to delete recipe: ' + (error.message || 'Unknown error') };
+  }
+}
+
+export async function updateCookingRecipe(id: string, instructions: string) {
+  try {
+    await prisma.cookingRecipe.update({ where: { id }, data: { instructions } });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateTemplateIngredient(id: string, data: { name: string; quantity: number; unit: string }) {
+  try {
+    await prisma.templateIngredient.update({ where: { id }, data });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
+  }
+}
+
+export async function updateTemplateFlow(id: string, name: string) {
+  try {
+    await prisma.templateExecutionFlow.update({ where: { id }, data: { name } });
+    return { success: true };
+  } catch (error: any) {
+    return { success: false, error: error.message };
   }
 }

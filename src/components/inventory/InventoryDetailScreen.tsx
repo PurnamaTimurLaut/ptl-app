@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { ChevronLeft, FileEdit, ArrowRightLeft, ShoppingBasket, HelpCircle, ClipboardList, Settings, Search, AlertTriangle, ChevronDown, XCircle, Tag, Trash2, X, Plus, Loader2 } from "lucide-react";
-import { getInventoryItem, adjustStock, moveStock, buyStock, assignStock, updateItemSettings, deleteContainer, addContainer } from "@/app/actions/inventory";
+import { getInventoryItem, adjustStock, moveStock, buyStock, assignStock, updateItemSettings, deleteContainer, addContainer, deleteInventoryItem } from "@/app/actions/inventory";
 
 interface InventoryDetailScreenProps {
   itemId: string;
@@ -103,6 +103,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
 
   const [showLog, setShowLog] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [settingName, setSettingName] = useState("");
   const [settingUnit, setSettingUnit] = useState("");
   const [settingNewContainerName, setSettingNewContainerName] = useState("");
@@ -115,6 +116,16 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
       await loadItem();
     } catch (e) {
       alert("Error updating settings");
+    }
+  };
+
+  const handleDeleteItem = async () => {
+    try {
+      await deleteInventoryItem(itemId);
+      setShowDeleteConfirm(false);
+      onBack(); // Return to inventory list
+    } catch (e) {
+      alert("Error deleting item");
     }
   };
 
@@ -732,6 +743,18 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
             </div>
 
           </div>
+
+          <div className="w-full h-px bg-[var(--color-ios-gray-4)] my-8"></div>
+
+          {/* Delete Item Button */}
+          <button 
+            onClick={() => setShowDeleteConfirm(true)}
+            className="w-full py-4 rounded-full border border-[#FF3B30] text-[#FF3B30] font-semibold text-[17px] active:bg-[#FF3B30]/10 transition-colors bg-transparent"
+          >
+            Delete Item
+          </button>
+          
+          <div className="h-12"></div> {/* Spacer for scroll */}
         </div>
 
         <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 pb-12 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10">
@@ -741,6 +764,46 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
               className="w-full py-4 rounded-[14px] font-semibold text-[17px] transition-colors bg-[var(--color-ios-blue)] text-white active:opacity-80 shadow-sm"
             >
               Save Changes
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ------- DELETE CONFIRM OVERLAY -------
+  if (showDeleteConfirm) {
+    return (
+      <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans overflow-y-auto">
+        <div className="flex items-center justify-between px-4 py-4 sticky top-0 bg-[#F5F5F7]/90 backdrop-blur-md z-10 w-full max-w-md mx-auto">
+          <button onClick={() => setShowDeleteConfirm(false)} className="flex items-center text-[var(--color-ios-blue)] text-[17px] font-medium active:opacity-70 transition-opacity w-20">
+            <ChevronLeft size={24} className="-ml-1" />
+            <span>Back</span>
+          </button>
+          <div className="w-20"></div>
+        </div>
+
+        <div className="px-6 w-full max-w-md mx-auto flex-1 flex flex-col justify-center items-center pb-32">
+          <div className="w-16 h-16 bg-[#FF3B30]/10 rounded-full flex items-center justify-center mb-6">
+            <AlertTriangle size={32} className="text-[#FF3B30]" />
+          </div>
+          <h2 className="text-[22px] font-bold text-black mb-3 text-center">Delete "{item.name}"?</h2>
+          <p className="text-[15px] text-[var(--color-ios-gray-1)] text-center mb-10 leading-relaxed px-4">
+            This action cannot be undone. All active stock, reserve stock, and history logs associated with this item will be permanently deleted.
+          </p>
+
+          <div className="flex flex-col gap-3 w-full">
+            <button 
+              onClick={handleDeleteItem}
+              className="w-full py-4 rounded-xl bg-[#FF3B30] text-white font-semibold text-[17px] active:opacity-80 transition-opacity"
+            >
+              Confirm Delete
+            </button>
+            <button 
+              onClick={() => setShowDeleteConfirm(false)}
+              className="w-full py-4 rounded-xl bg-[#E5E5EA] text-black font-semibold text-[17px] active:bg-[#D1D1D6] transition-opacity"
+            >
+              Cancel
             </button>
           </div>
         </div>
@@ -839,7 +902,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
                 else if (btn.id === "buy") setShowBuy(true);
                 else if (btn.id === "assign") setShowAssign(true);
                 else if (btn.id === "log") setShowLog(true);
-                else if (btn.id === "settings") setShowSettings(true);
+                else if (btn.id === "setting") setShowSettings(true);
               }}
               className="bg-white rounded-2xl aspect-[4/3] flex flex-col items-center justify-center p-4 relative shadow-sm border border-[var(--color-ios-gray-5)] active:opacity-70 transition-opacity"
             >

@@ -9,10 +9,13 @@ import {
   createProductionTemplate, createCookingRecipe, createCookingRecipeLinked,
   addTemplateIngredient, addTemplateFlow
 } from "@/app/lib/recipeActions";
+import { getInventory } from "@/app/actions/inventory";
 
-// Custom Rich Text Editor for Recipes
-const RecipeRichEditor = ({ onChange }: { onChange: (html: string) => void }) => {
+const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: string) => void, inventoryItems: any[] }) => {
   const editorRef = useRef<HTMLDivElement>(null);
+  const [showIngModal, setShowIngModal] = useState(false);
+  const [selIngName, setSelIngName] = useState("");
+  const [selIngAmount, setSelIngAmount] = useState("");
 
   const handleInput = () => {
     if (editorRef.current) onChange(editorRef.current.innerHTML);
@@ -57,13 +60,40 @@ const RecipeRichEditor = ({ onChange }: { onChange: (html: string) => void }) =>
     handleInput();
   };
 
+  const insertIngredientPill = () => {
+    if (!selIngName || !selIngAmount) return alert("Fill all fields");
+    const item = inventoryItems.find(i => i.name === selIngName);
+    const unit = item ? item.unit : "";
+    const label = `${selIngName} ${selIngAmount}${unit}`;
+
+    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-flex items-center justify-center bg-[#E5E5EA] text-black px-2 py-0.5 rounded-md mx-0.5 font-semibold text-[14px]" data-variable="${label}">${label}</span>&nbsp;`;
+    
+    setShowIngModal(false);
+    setSelIngName("");
+    setSelIngAmount("");
+
+    editorRef.current?.focus();
+    if (editorRef.current?.innerText.trim() === "") {
+        document.execCommand('insertHTML', false, `1. ${pillHtml}`);
+    } else {
+        document.execCommand('insertHTML', false, pillHtml);
+    }
+    handleInput();
+  };
+
   return (
+    <>
     <div className="w-full bg-white rounded-xl shadow-sm border border-[#E5E5EA] overflow-hidden flex flex-col mb-6">
        <div className="flex justify-between items-center px-4 py-3 border-b border-[#E5E5EA]">
           <span className="text-[17px] font-bold text-black">Recipe</span>
-          <button onClick={insertVariable} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
-             123...
-          </button>
+          <div className="flex gap-4">
+            <button onClick={() => setShowIngModal(true)} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
+               + Add Ingredient
+            </button>
+            <button onClick={insertVariable} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
+               123...
+            </button>
+          </div>
        </div>
        <div 
          ref={editorRef}
@@ -74,6 +104,61 @@ const RecipeRichEditor = ({ onChange }: { onChange: (html: string) => void }) =>
          suppressContentEditableWarning
        />
     </div>
+
+    {showIngModal && (
+      <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+        <div className="bg-[#F5F5F7] rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="p-6">
+            <h3 className="text-[20px] font-bold text-center text-black mb-6">Add Ingredient</h3>
+            
+            <div className="mb-4 relative">
+              <label className="text-[13px] font-semibold text-[var(--color-ios-gray-1)] ml-1 mb-1.5 block">Ingredient</label>
+              <select 
+                value={selIngName} 
+                onChange={e => setSelIngName(e.target.value)}
+                className="w-full bg-white rounded-xl py-3.5 pl-4 pr-10 text-[17px] text-black outline-none shadow-sm appearance-none"
+              >
+                <option value="" disabled>Select from inventory...</option>
+                {inventoryItems.map(i => <option key={i.id} value={i.name}>{i.name}</option>)}
+              </select>
+              <ChevronDown size={20} className="absolute right-3.5 bottom-3.5 text-[#C7C7CC] pointer-events-none" />
+            </div>
+
+            <div className="mb-8 relative flex items-center">
+              <div className="w-full">
+                <label className="text-[13px] font-semibold text-[var(--color-ios-gray-1)] ml-1 mb-1.5 block">Amount</label>
+                <input 
+                  type="number" 
+                  value={selIngAmount} 
+                  onChange={e => setSelIngAmount(e.target.value)}
+                  placeholder="e.g. 500"
+                  className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm"
+                />
+              </div>
+              {selIngName && inventoryItems.find(i => i.name === selIngName)?.unit && (
+                <span className="absolute right-4 bottom-3.5 text-[15px] text-[var(--color-ios-gray-2)] pointer-events-none">
+                  {inventoryItems.find(i => i.name === selIngName)?.unit}
+                </span>
+              )}
+            </div>
+
+            <div className="flex gap-3">
+              <button onClick={() => setShowIngModal(false)} className="flex-1 py-3.5 rounded-xl bg-[#E5E5EA] text-black font-semibold text-[17px] active:bg-[#D1D1D6] transition-colors">
+                Cancel
+              </button>
+              <button 
+                onClick={insertIngredientPill} 
+                disabled={!selIngName || !selIngAmount}
+                className="flex-1 py-3.5 rounded-xl bg-[var(--color-ios-blue)] text-white font-semibold text-[17px] active:opacity-80 transition-colors disabled:opacity-50"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 
@@ -87,6 +172,7 @@ interface DatabasesScreenProps {
 export default function DatabasesScreen({ onProfileClick, onViewTemplate, onViewRecipe, onNavTabChange }: DatabasesScreenProps) {
   const [templates, setTemplates] = useState<any[]>([]);
   const [recipes, setRecipes] = useState<any[]>([]);
+  const [inventoryItems, setInventoryItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
   // Create Modals
@@ -111,12 +197,14 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
   const loadAll = async () => {
     setIsLoading(true);
-    const [tempRes, recRes] = await Promise.all([
+    const [tempRes, recRes, invRes] = await Promise.all([
       getProductionTemplates(),
-      getCookingRecipes()
+      getCookingRecipes(),
+      getInventory()
     ]);
     if (tempRes.success) setTemplates(tempRes.templates || []);
     if (recRes.success) setRecipes(recRes.recipes || []);
+    setInventoryItems(invRes || []);
     setIsLoading(false);
   };
 
@@ -125,11 +213,11 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
   const handleAddTempIngredientLocal = () => {
     if(!ingName || !ingAmount) return alert("Fill all ingredient fields first");
     
-    // Parse amount like "200g" into qty=200, unit="g"
-    const parsedQty = parseFloat(ingAmount) || 0;
-    const parsedUnit = ingAmount.replace(/[0-9.]/g, '').trim() || "pcs";
+    // Auto-detect unit from inventory database
+    const selectedItem = inventoryItems.find(i => i.name === ingName);
+    const itemUnit = selectedItem ? selectedItem.unit : "pcs";
 
-    setTempIngredients([...tempIngredients, {name: ingName, quantity: parsedQty.toString(), unit: parsedUnit}]);
+    setTempIngredients([...tempIngredients, {name: ingName, quantity: ingAmount, unit: itemUnit}]);
     setIngName(""); setIngAmount("");
   };
 
@@ -236,11 +324,32 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
              {/* Add Row */}
              <div className="flex gap-3 mb-4">
                 <div className="flex-[2] relative">
-                   <input type="text" placeholder="Search" value={ingName} onChange={e => setIngName(e.target.value)} className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm" />
+                   <select 
+                     value={ingName} 
+                     onChange={e => setIngName(e.target.value)} 
+                     className="w-full bg-white rounded-xl py-3.5 pl-4 pr-10 text-[17px] text-black outline-none shadow-sm appearance-none"
+                   >
+                     <option value="" disabled>Select Ingredient...</option>
+                     {inventoryItems.map((item) => (
+                       <option key={item.id} value={item.name}>{item.name}</option>
+                     ))}
+                   </select>
                    <ChevronDown size={20} className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#C7C7CC] pointer-events-none" />
                 </div>
-                <div className="flex-1">
-                   <input type="text" placeholder="Amount..." value={ingAmount} onChange={e => setIngAmount(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && handleAddTempIngredientLocal()} className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm" />
+                <div className="flex-1 relative flex items-center">
+                   <input 
+                     type="number" 
+                     placeholder="Amount..." 
+                     value={ingAmount} 
+                     onChange={e => setIngAmount(e.target.value)} 
+                     onKeyDown={(e) => e.key === 'Enter' && handleAddTempIngredientLocal()} 
+                     className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm" 
+                   />
+                   {ingName && inventoryItems.find(i => i.name === ingName)?.unit && (
+                     <span className="absolute right-3 text-[15px] text-[var(--color-ios-gray-2)] pointer-events-none">
+                       {inventoryItems.find(i => i.name === ingName)?.unit}
+                     </span>
+                   )}
                 </div>
              </div>
              
@@ -333,7 +442,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
            </div>
 
            {/* Custom Recipe Editor */}
-           <RecipeRichEditor onChange={setNewRecInstructions} />
+           <RecipeRichEditor onChange={setNewRecInstructions} inventoryItems={inventoryItems} />
         </div>
 
         {/* Fixed Bottom Button */}

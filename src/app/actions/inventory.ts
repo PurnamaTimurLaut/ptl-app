@@ -299,3 +299,10 @@ export async function assignStock(
 
   return uniqueCode;
 }
+
+export async function deleteInventoryItem(itemId: string) {
+  // Cascading deletes on containers and logs handled by Prisma schema
+  return await prisma.inventoryItem.delete({
+    where: { id: itemId }
+  });
+}
