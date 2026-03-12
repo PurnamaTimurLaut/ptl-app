@@ -37,38 +37,40 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[var(--color-ios-gray-6)] font-sans items-center py-20 px-8">
+    <div className="flex flex-col min-h-screen bg-black font-sans items-center py-20 px-8 lowercase">
       
-      {/* Logo */}
-      <div className="w-24 h-24 mb-8 flex items-center justify-center">
-        <img src="/O 1.png" alt="O Logo" className="w-full h-full object-contain" />
+      {/* Logo GIF */}
+      <div className="w-32 h-32 mb-8 flex items-center justify-center overflow-hidden rounded-full border border-white/10 shadow-2xl">
+        <img src="/water.gif" alt="Water Logo" className="w-full h-full object-cover scale-110" />
       </div>
 
-      <h1 className="text-[28px] font-bold tracking-tight text-black text-center mb-12 leading-tight">
-        Selamat Datang<br/>Kembali,
+      <h1 className="text-[20px] font-medium tracking-tight text-white text-center mb-12 leading-tight" style={{ fontFamily: '"Milanesa Serif", serif' }}>
+        selamat datang kembali,
       </h1>
 
         <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-          <Input id="email" name="email" placeholder="Email" type="email" required disabled={isPending} />
-          <Input id="password" name="password" placeholder="Password" type="password" required disabled={isPending} />
+          <Input id="email" name="email" placeholder="email" type="email" required disabled={isPending} 
+            className="!bg-white/[0.05] !border-white/10 !text-white !placeholder:text-white/30 !rounded-2xl" />
+          <Input id="password" name="password" placeholder="password" type="password" required disabled={isPending} 
+            className="!bg-white/[0.05] !border-white/10 !text-white !placeholder:text-white/30 !rounded-2xl" />
           
-          <Button type="submit" variant="primary" fullWidth className="!bg-black !text-white !rounded-full !font-bold" disabled={isPending}>
-            {isPending ? "Tunggu sebentar..." : "Masuk"}
+          <Button type="submit" variant="primary" fullWidth className="!bg-white !text-black !rounded-full !font-bold py-4 mt-4" disabled={isPending}>
+            {isPending ? "tunggu sebentar..." : "masuk"}
           </Button>
 
           {errorMessage && (
-            <p className="text-sm text-red-500 text-center">{errorMessage}</p>
+            <p className="text-sm text-red-400 text-center">{errorMessage.toLowerCase()}</p>
           )}
 
-          <Button type="button" variant="ghost" fullWidth className="!bg-transparent !text-black border border-black !rounded-full !font-bold hover:!bg-black/[0.05]">
-            Masuk dengan Nomor Telepon
+          <Button type="button" variant="ghost" fullWidth className="!bg-transparent !text-white/50 border border-white/20 !rounded-full !font-medium py-4 text-xs hover:!bg-white/[0.05]">
+            masuk dengan nomor telepon
           </Button>
         </form>
 
-      <div className="mt-auto text-center">
-        <p className="text-[10px] text-[var(--color-ios-gray-1)] leading-tight">
-          © 2026 PT Purnama Timur Laut.<br/>
-          Seluruh Hak Cipta Dilindungi Undang-Undang.
+      <div className="mt-auto text-center opacity-30">
+        <p className="text-[10px] text-white leading-tight">
+          © 2026 pt purnama timur laut.<br/>
+          seluruh hak cipta dilindungi undang-undang.
         </p>
       </div>
     </div>
