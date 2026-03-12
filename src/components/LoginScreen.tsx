@@ -37,38 +37,81 @@ export default function LoginScreen() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-black font-sans items-center py-20 px-8 lowercase">
+    <div className="flex flex-col min-h-screen bg-black font-sans items-center py-10 px-8 lowercase overflow-hidden">
       
-      {/* Logo GIF */}
-      <div className="w-32 h-32 mb-8 flex items-center justify-center overflow-hidden rounded-full border border-white/10 shadow-2xl">
-        <img src="/water.gif" alt="Water Logo" className="w-full h-full object-cover scale-110" />
+      {/* GIF Container with Layered Text */}
+      <div className="relative w-full aspect-square max-w-[500px] flex items-center justify-center -mt-10">
+        <img 
+          src="/water.gif" 
+          alt="Water Background" 
+          className="w-full h-full object-contain scale-150 mix-blend-screen opacity-80" 
+        />
+        <h1 
+          className="absolute text-[24px] font-medium tracking-tight text-white/90 text-center pointer-events-none select-none" 
+          style={{ fontFamily: '"Milanesa Serif", serif' }}
+        >
+          selamat datang kembali
+        </h1>
       </div>
 
-      <h1 className="text-[20px] font-medium tracking-tight text-white text-center mb-12 leading-tight" style={{ fontFamily: '"Milanesa Serif", serif' }}>
-        selamat datang kembali,
-      </h1>
+      <form onSubmit={handleSubmit} className="w-full max-w-xs space-y-3 -mt-4 z-10">
+        <Input 
+          id="email" 
+          name="email" 
+          placeholder="username" 
+          type="email" 
+          required 
+          disabled={isPending} 
+          className="!bg-transparent !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6" 
+        />
+        <Input 
+          id="password" 
+          name="password" 
+          placeholder="password" 
+          type="password" 
+          required 
+          disabled={isPending} 
+          className="!bg-transparent !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6" 
+        />
+        
+        <div className="flex justify-center pt-12">
+          <button 
+            type="submit" 
+            disabled={isPending}
+            className="p-4 rounded-xl border border-white/40 text-white hover:bg-white/10 transition-colors disabled:opacity-50"
+          >
+            {isPending ? (
+              <span className="animate-pulse">...</span>
+            ) : (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="32" 
+                height="32" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className="lucide lucide-log-in"
+              >
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+            )}
+          </button>
+        </div>
 
-        <form onSubmit={handleSubmit} className="w-full max-w-sm space-y-4">
-          <Input id="email" name="email" placeholder="email" type="email" required disabled={isPending} 
-            className="!bg-white/[0.05] !border-white/10 !text-white !placeholder:text-white/30 !rounded-2xl" />
-          <Input id="password" name="password" placeholder="password" type="password" required disabled={isPending} 
-            className="!bg-white/[0.05] !border-white/10 !text-white !placeholder:text-white/30 !rounded-2xl" />
-          
-          <Button type="submit" variant="primary" fullWidth className="!bg-white !text-black !rounded-full !font-bold py-4 mt-4" disabled={isPending}>
-            {isPending ? "tunggu sebentar..." : "masuk"}
-          </Button>
+        {errorMessage && (
+          <p className="text-xs text-red-400 text-center pt-4 opacity-70">
+            {errorMessage.toLowerCase()}
+          </p>
+        )}
+      </form>
 
-          {errorMessage && (
-            <p className="text-sm text-red-400 text-center">{errorMessage.toLowerCase()}</p>
-          )}
-
-          <Button type="button" variant="ghost" fullWidth className="!bg-transparent !text-white/50 border border-white/20 !rounded-full !font-medium py-4 text-xs hover:!bg-white/[0.05]">
-            masuk dengan nomor telepon
-          </Button>
-        </form>
-
-      <div className="mt-auto text-center opacity-30">
-        <p className="text-[10px] text-white leading-tight">
+      <div className="mt-auto pb-6 text-center opacity-20 transition-opacity hover:opacity-100">
+        <p className="text-[10px] text-white leading-relaxed">
           © 2026 pt purnama timur laut.<br/>
           seluruh hak cipta dilindungi undang-undang.
         </p>
