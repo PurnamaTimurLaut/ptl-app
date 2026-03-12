@@ -254,6 +254,12 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
     setView('add_purchase_success');
   };
 
+  const toggleExpand = (id: string) => {
+    setExpandedTransactions(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+
   if (view === 'unpurchased') {
     return (
       <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans">
@@ -332,7 +338,7 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
                   <div key={tx.id} className="bg-white rounded-[24px] overflow-hidden shadow-sm">
                     <div className="p-6">
                       <div className="flex justify-between items-center mb-6">
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-2 cursor-pointer" onClick={() => toggleExpand(tx.id)}>
                           <h2 className="text-[22px] font-bold text-black">{tx.name}</h2>
                           <div className="flex items-center gap-1 bg-[#FFFBEB] px-2 py-1 rounded-md">
                              <AlertCircle size={14} className="text-[var(--color-ios-yellow)]" />
@@ -340,12 +346,12 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
                           </div>
                         </div>
                         <div className="flex items-center gap-4 text-[var(--color-ios-gray-2)]">
-                           <Trash2 size={20} className="text-red-400 cursor-pointer" />
-                           <Edit2 size={20} className="text-[var(--color-ios-blue)] cursor-pointer" />
+                           <Trash2 size={20} className="text-red-400 cursor-pointer active:opacity-50" onClick={(e) => e.stopPropagation()} />
+                           <Edit2 size={20} className="text-[var(--color-ios-blue)] cursor-pointer active:opacity-50" onClick={(e) => e.stopPropagation()} />
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-2 gap-4 mb-4">
+                      <div className="grid grid-cols-2 gap-4 mb-4 cursor-pointer" onClick={() => toggleExpand(tx.id)}>
                         <div>
                           <label className="text-[12px] font-medium text-[var(--color-ios-gray-3)]">Amount Spent</label>
                           <p className="text-[20px] font-medium text-black mt-1">Rp{tx.totalSpent}</p>
@@ -356,8 +362,8 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
                         </div>
                       </div>
 
-                      <div className="flex justify-end">
-                        <button onClick={() => toggleExpand(tx.id)} className="text-[var(--color-ios-gray-3)]">
+                      <div className="flex justify-end mt-2">
+                        <button onClick={() => toggleExpand(tx.id)} className="text-[var(--color-ios-gray-3)] p-2 -mr-2 active:bg-gray-100 rounded-full transition-colors">
                            {isExpanded ? <ChevronUp size={24} /> : <ChevronDown size={24} />}
                         </button>
                       </div>
