@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 
 export async function getProductionTemplateById(id: string) {
@@ -23,6 +24,7 @@ export async function getProductionTemplateById(id: string) {
 export async function deleteProductionTemplate(id: string) {
   try {
     await prisma.productionTemplate.delete({ where: { id } });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete template:", error);
@@ -33,6 +35,7 @@ export async function deleteProductionTemplate(id: string) {
 export async function updateProductionTemplateName(id: string, name: string) {
   try {
     await prisma.productionTemplate.update({ where: { id }, data: { name } });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -51,6 +54,7 @@ export async function getCookingRecipes() {
 export async function deleteCookingRecipe(id: string) {
   try {
     await prisma.cookingRecipe.delete({ where: { id } });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     console.error("Failed to delete recipe:", error);
@@ -61,6 +65,7 @@ export async function deleteCookingRecipe(id: string) {
 export async function updateCookingRecipe(id: string, instructions: string) {
   try {
     await prisma.cookingRecipe.update({ where: { id }, data: { instructions } });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -70,6 +75,7 @@ export async function updateCookingRecipe(id: string, instructions: string) {
 export async function updateTemplateIngredient(id: string, data: { name: string; quantity: number; unit: string }) {
   try {
     await prisma.templateIngredient.update({ where: { id }, data });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };
@@ -79,6 +85,7 @@ export async function updateTemplateIngredient(id: string, data: { name: string;
 export async function updateTemplateFlow(id: string, name: string) {
   try {
     await prisma.templateExecutionFlow.update({ where: { id }, data: { name } });
+    revalidatePath("/");
     return { success: true };
   } catch (error: any) {
     return { success: false, error: error.message };

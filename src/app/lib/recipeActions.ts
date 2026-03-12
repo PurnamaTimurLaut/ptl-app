@@ -1,5 +1,4 @@
-"use server";
-
+import { revalidatePath } from "next/cache";
 import { prisma } from "./prisma";
 
 // =====================================
@@ -26,6 +25,7 @@ export async function getProductionTemplates() {
 export async function createProductionTemplate(data: { name: string }) {
   try {
     const template = await prisma.productionTemplate.create({ data });
+    revalidatePath("/");
     return { success: true, template };
   } catch (error: any) {
     console.error("Failed to create template:", error);
@@ -54,6 +54,7 @@ export async function createCookingRecipeLinked(templateId: string, instructions
       }
     });
 
+    revalidatePath("/");
     return { success: true, recipe };
   } catch (error: any) {
     console.error("Failed to create and link recipe:", error);
@@ -66,6 +67,7 @@ export async function addTemplateIngredient(templateId: string, data: { name: st
     const ingredient = await prisma.templateIngredient.create({
       data: { templateId, ...data }
     });
+    revalidatePath("/");
     return { success: true, ingredient };
   } catch (error) {
     console.error("Failed to add ingredient:", error);
@@ -76,6 +78,7 @@ export async function addTemplateIngredient(templateId: string, data: { name: st
 export async function removeTemplateIngredient(id: string) {
   try {
     await prisma.templateIngredient.delete({ where: { id } });
+    revalidatePath("/");
     return { success: true };
   } catch (error) {
     return { success: false, error: "Failed to remove ingredient" };
@@ -87,6 +90,7 @@ export async function addTemplateFlow(templateId: string, data: { name: string; 
     const flow = await prisma.templateExecutionFlow.create({
       data: { templateId, name: data.name, recipeId: data.recipeId || null }
     });
+    revalidatePath("/");
     return { success: true, flow };
   } catch (error) {
     console.error("Failed to add flow:", error);
@@ -97,6 +101,7 @@ export async function addTemplateFlow(templateId: string, data: { name: string; 
 export async function removeTemplateFlow(id: string) {
   try {
     await prisma.templateExecutionFlow.delete({ where: { id } });
+    revalidatePath("/");
     return { success: true };
   } catch (error) {
     return { success: false, error: "Failed to remove execution flow" };
@@ -120,6 +125,7 @@ export async function getCookingRecipes() {
 export async function createCookingRecipe(data: { name: string; instructions: string }) {
   try {
     const recipe = await prisma.cookingRecipe.create({ data });
+    revalidatePath("/");
     return { success: true, recipe };
   } catch (error) {
     console.error("Failed to create cooking recipe:", error);

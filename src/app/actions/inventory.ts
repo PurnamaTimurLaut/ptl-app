@@ -1,7 +1,6 @@
-"use server";
-
 import { prisma } from "@/app/lib/prisma";
 import { ContainerType, LogActionType } from "@prisma/client";
+import { revalidatePath } from "next/cache";
 
 // --- HELPERS ---
 
@@ -88,26 +87,33 @@ export async function addInventoryItem(name: string, unit: string = "gr") {
       status: "ok"
     }
   });
+  revalidatePath("/");
   return item;
 }
 
 export async function updateItemSettings(itemId: string, name: string, unit: string) {
-  return await prisma.inventoryItem.update({
+  const res = await prisma.inventoryItem.update({
     where: { id: itemId },
     data: { name, unit }
   });
+  revalidatePath("/");
+  return res;
 }
 
 export async function addContainer(itemId: string, name: string, type: ContainerType) {
-  return await prisma.inventoryContainer.create({
+  const res = await prisma.inventoryContainer.create({
     data: { itemId, name, type, amount: 0 }
   });
+  revalidatePath("/");
+  return res;
 }
 
 export async function deleteContainer(containerId: string) {
-  return await prisma.inventoryContainer.delete({
+  const res = await prisma.inventoryContainer.delete({
     where: { id: containerId }
   });
+  revalidatePath("/");
+  return res;
 }
 
 // Action: Stock Adjustment (SAI)
@@ -153,6 +159,7 @@ export async function adjustStock(
     })
   ]);
 
+  revalidatePath("/");
   return uniqueCode;
 }
 
@@ -195,6 +202,7 @@ export async function moveStock(
     })
   ]);
 
+  revalidatePath("/");
   return uniqueCode;
 }
 
@@ -250,6 +258,7 @@ export async function buyStock(
     }
   });
 
+  revalidatePath("/");
   return uniqueCode;
 }
 
@@ -297,12 +306,14 @@ export async function assignStock(
     await prisma.inventoryItem.update({ where: { id: itemId }, data: { status: "ok" }});
   }
 
+  revalidatePath("/");
   return uniqueCode;
 }
 
 export async function deleteInventoryItem(itemId: string) {
-  // Cascading deletes on containers and logs handled by Prisma schema
-  return await prisma.inventoryItem.delete({
+  const res = await prisma.inventoryItem.delete({
     where: { id: itemId }
   });
+  revalidatePath("/");
+  return res;
 }
