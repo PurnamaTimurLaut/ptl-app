@@ -1,3 +1,5 @@
+"use server";
+
 import { prisma } from "@/app/lib/prisma";
 import { ContainerType, LogActionType } from "@prisma/client";
 import { revalidatePath } from "next/cache";
