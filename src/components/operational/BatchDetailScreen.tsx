@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronDown, ChevronUp, Lock, Clock, MoreHorizontal, Searc
 import ReviewShoppingListFlow from "./ReviewShoppingListFlow";
 import ReviewExecutionFlow from "./ReviewExecutionFlow";
 import ReceiveShoppingGoodsFlow from "./ReceiveShoppingGoodsFlow";
+import DoExecutionFlow from "./DoExecutionFlow";
 
 interface BatchDetailScreenProps {
   batchId: number;
@@ -25,6 +26,11 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
 
   const [isShoppingGoodsOpen, setIsShoppingGoodsOpen] = useState(false);
   const [isShoppingGoodsDone, setIsShoppingGoodsDone] = useState(false);
+
+  const [isDoExecutionFlowOpen, setIsDoExecutionFlowOpen] = useState(false);
+  const [isDoExecutionFlowDone, setIsDoExecutionFlowDone] = useState(false);
+
+  const [isInputResultsDone, setIsInputResultsDone] = useState(false);
 
   const toggleStep = (stepId: string, isActive: boolean) => {
     if (!isActive) return; // Cannot toggle disabled steps
@@ -53,7 +59,17 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     setIsShoppingGoodsOpen(false);
     if (completed) {
       setIsShoppingGoodsDone(true);
-      // Logic for unlocking action stages will go here eventually
+      // Unlock action stage automatically
+      setExpandedStep('do_execution');
+    }
+  };
+
+  const handleDoExecutionFlowClose = (completed: boolean) => {
+    setIsDoExecutionFlowOpen(false);
+    if (completed) {
+      setIsDoExecutionFlowDone(true);
+      // Auto-expand next action step
+      setExpandedStep('input_results');
     }
   };
 
@@ -67,6 +83,10 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
 
   if (isShoppingGoodsOpen) {
     return <ReceiveShoppingGoodsFlow isCompleted={isShoppingGoodsDone} onBackToBatch={handleShoppingGoodsClose} />;
+  }
+
+  if (isDoExecutionFlowOpen) {
+    return <DoExecutionFlow isCompleted={isDoExecutionFlowDone} onBackToBatch={handleDoExecutionFlowClose} />;
   }
 
   return (
@@ -290,21 +310,104 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
         </div>
 
         {/* Action Stage */}
-        <div>
+        <div className="mt-4">
           <h2 className="text-[17px] font-semibold text-black mb-4 flex items-center gap-2">
-            Action Stage <Lock size={16} className="text-black" />
+            Action Stage {isShoppingGoodsDone ? <span className="text-[var(--color-ios-blue)]">🔓</span> : <Lock size={16} className="text-black" />}
           </h2>
           
           <div className="flex flex-col gap-3">
-            {['Do Execution Flow', 'Input Results', 'Create and Assign Barcode', 'Complete Process'].map((stepName, idx) => (
-              <div key={idx} className="bg-[#B4B4B8] rounded-2xl p-4 flex justify-between items-center opacity-80 cursor-not-allowed">
+            {/* Step 1: Do Execution Flow */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                !isShoppingGoodsDone 
+                  ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                  : isDoExecutionFlowDone 
+                    ? 'bg-white/80' 
+                    : 'bg-white'
+              }`}
+            >
+              <div 
+                onClick={() => toggleStep('do_execution', isShoppingGoodsDone)}
+                className="p-4 flex justify-between items-center cursor-pointer select-none"
+              >
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
-                    <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
-                  </div>
-                  <span className="font-semibold text-[16px] text-black/30">{stepName}</span>
+                  {!isShoppingGoodsDone ? (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                      <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                    </div>
+                  ) : isDoExecutionFlowDone ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                      <CheckCircle size={20} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                      <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                    </div>
+                  )}
+                  <span className={`font-semibold text-[16px] ${!isShoppingGoodsDone ? 'text-black/30' : isDoExecutionFlowDone ? 'text-black/60' : 'text-black'}`}>
+                    Do Execution Flow
+                  </span>
                 </div>
-                <ChevronDown size={20} className="text-black/20" />
+                {isShoppingGoodsDone && (
+                  expandedStep === 'do_execution' ? (
+                    <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
+                  )
+                )}
+                {!isShoppingGoodsDone && (
+                  <ChevronDown size={20} className="text-black/20" />
+                )}
+              </div>
+              
+              {isShoppingGoodsDone && expandedStep === 'do_execution' && (
+                <div className="px-4 pb-4 pt-1 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
+                  <button 
+                    onClick={() => setIsDoExecutionFlowOpen(true)}
+                    className="w-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors active:bg-[var(--color-ios-blue)]/10"
+                  >
+                    <Search size={18} /> View
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Other Action Steps */}
+            {[
+              { name: 'Input Results', id: 'input_results', isAvailable: isDoExecutionFlowDone, isDone: isInputResultsDone },
+              { name: 'Create and Assign Barcode', id: 'barcode', isAvailable: isInputResultsDone, isDone: false },
+              { name: 'Complete Process', id: 'complete', isAvailable: false, isDone: false }
+            ].map((step, idx) => (
+              <div key={idx} className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                  !step.isAvailable 
+                    ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                    : step.isDone 
+                      ? 'bg-white/80' 
+                      : 'bg-white'
+                }`}
+              >
+                <div 
+                  className="p-4 flex justify-between items-center cursor-pointer select-none"
+                >
+                  <div className="flex items-center gap-3">
+                    {!step.isAvailable ? (
+                      <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                        <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                      </div>
+                    ) : step.isDone ? (
+                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                        <CheckCircle size={20} />
+                      </div>
+                    ) : (
+                      <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                        <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                      </div>
+                    )}
+                    <span className={`font-semibold text-[16px] ${!step.isAvailable ? 'text-black/30' : step.isDone ? 'text-black/60' : 'text-black'}`}>
+                      {step.name}
+                    </span>
+                  </div>
+                  <ChevronDown size={20} className={!step.isAvailable ? "text-black/20" : "text-[var(--color-ios-gray-2)]"} />
+                </div>
               </div>
             ))}
           </div>
