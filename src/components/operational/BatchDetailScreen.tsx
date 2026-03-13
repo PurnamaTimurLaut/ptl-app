@@ -6,6 +6,7 @@ import ReviewShoppingListFlow from "./ReviewShoppingListFlow";
 import ReviewExecutionFlow from "./ReviewExecutionFlow";
 import ReceiveShoppingGoodsFlow from "./ReceiveShoppingGoodsFlow";
 import DoExecutionFlow from "./DoExecutionFlow";
+import InitialAuditFlow from "./InitialAuditFlow";
 
 interface BatchDetailScreenProps {
   batchId: number;
@@ -14,10 +15,13 @@ interface BatchDetailScreenProps {
 
 export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreenProps) {
   // Mock active step logic for the progressive disclosure
-  // In a real app, this state would come from the database
-  const [expandedStep, setExpandedStep] = useState<string | null>('review_shopping');
+  const [expandedStep, setExpandedStep] = useState<string | null>('initial_audit');
   
   // Navigation states within this Batch Work Order
+  const [isInitialAuditOpen, setIsInitialAuditOpen] = useState(false);
+  const [isInitialAuditDone, setIsInitialAuditDone] = useState(false);
+  const [auditData, setAuditData] = useState<any[] | null>(null);
+
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
   const [isShoppingListDone, setIsShoppingListDone] = useState(false);
 
@@ -35,6 +39,16 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
   const toggleStep = (stepId: string, isActive: boolean) => {
     if (!isActive) return; // Cannot toggle disabled steps
     setExpandedStep(prev => prev === stepId ? null : stepId);
+  };
+
+  const handleInitialAuditClose = (completed: boolean, data?: any[]) => {
+    setIsInitialAuditOpen(false);
+    if (completed) {
+      setIsInitialAuditDone(true);
+      if (data) setAuditData(data);
+      // Auto-expand next step when completed
+      setExpandedStep('review_shopping');
+    }
   };
 
   const handleShoppingListClose = (completed: boolean) => {
@@ -73,8 +87,12 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     }
   };
 
+  if (isInitialAuditOpen) {
+    return <InitialAuditFlow isCompleted={isInitialAuditDone} onBackToBatch={handleInitialAuditClose} />;
+  }
+
   if (isShoppingListOpen) {
-    return <ReviewShoppingListFlow isCompleted={isShoppingListDone} onBackToBatch={handleShoppingListClose} />;
+    return <ReviewShoppingListFlow isCompleted={isShoppingListDone} onBackToBatch={handleShoppingListClose} auditData={auditData} />;
   }
 
   if (isExecutionFlowOpen) {
@@ -122,14 +140,14 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
           <h2 className="text-[17px] font-semibold text-black mb-4">Plan and Preparation Stage</h2>
           
           <div className="flex flex-col gap-3">
-            {/* Step 1: Active Step */}
-            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${isShoppingListDone ? 'bg-white/80' : 'bg-white'}`}>
+            {/* Step 0: Initial Audit */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${isInitialAuditDone ? 'bg-white/80' : 'bg-white'}`}>
               <div 
-                onClick={() => toggleStep('review_shopping', true)}
+                onClick={() => toggleStep('initial_audit', true)}
                 className="p-4 flex justify-between items-center cursor-pointer select-none"
               >
                 <div className="flex items-center gap-3">
-                  {isShoppingListDone ? (
+                  {isInitialAuditDone ? (
                     <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
                       <CheckCircle size={20} />
                     </div>
@@ -138,17 +156,83 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
                       <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
                     </div>
                   )}
-                  <span className={`font-semibold text-[16px] ${isShoppingListDone ? 'text-black/60' : 'text-black'}`}>Review Shopping Lists</span>
+                  <span className={`font-semibold text-[16px] ${isInitialAuditDone ? 'text-black/60' : 'text-black'}`}>Initial Audit</span>
                 </div>
-                {expandedStep === 'review_shopping' ? (
+                {expandedStep === 'initial_audit' ? (
                   <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
                 ) : (
                   <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
                 )}
               </div>
               
+              {expandedStep === 'initial_audit' && (
+                <div className="px-4 pb-4 pt-1 flex gap-3 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
+                  <button 
+                    onClick={() => setIsInitialAuditOpen(true)}
+                    className="flex-1 border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors active:bg-[var(--color-ios-blue)]/10"
+                  >
+                    <Search size={18} /> View
+                  </button>
+                  <button 
+                    disabled={!isInitialAuditDone}
+                    onClick={() => {
+                        setIsInitialAuditDone(false);
+                        setIsShoppingListDone(false);
+                        setExpandedStep('initial_audit');
+                    }}
+                    className={`flex-1 py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors border text-black hover:bg-black/5 ${
+                      !isInitialAuditDone ? 'opacity-50 cursor-not-allowed border-[var(--color-ios-gray-3)] text-[var(--color-ios-gray-3)]' : 'border-black'
+                   }`}
+                  >
+                    Reopen
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Step 1: Review Shopping Lists */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                !isInitialAuditDone 
+                  ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                  : isShoppingListDone 
+                    ? 'bg-white/80' 
+                    : 'bg-white'
+              }`}
+            >
+              <div 
+                onClick={() => toggleStep('review_shopping', isInitialAuditDone)}
+                className="p-4 flex justify-between items-center cursor-pointer select-none"
+              >
+                <div className="flex items-center gap-3">
+                  {!isInitialAuditDone ? (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                      <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                    </div>
+                  ) : isShoppingListDone ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                      <CheckCircle size={20} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                      <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                    </div>
+                  )}
+                  <span className={`font-semibold text-[16px] ${!isInitialAuditDone ? 'text-black/30' : isShoppingListDone ? 'text-black/60' : 'text-black'}`}>Review Shopping Lists</span>
+                </div>
+                {isInitialAuditDone && (
+                  expandedStep === 'review_shopping' ? (
+                    <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
+                  )
+                )}
+                {!isInitialAuditDone && (
+                  <ChevronDown size={20} className="text-black/20" />
+                )}
+              </div>
+              
               {/* Expanded Content for Active Step */}
-              {expandedStep === 'review_shopping' && (
+              {isInitialAuditDone && expandedStep === 'review_shopping' && (
                 <div className="px-4 pb-4 pt-1 flex gap-3 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
                   <button 
                     onClick={() => setIsShoppingListOpen(true)}
@@ -159,11 +243,10 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
                   <button 
                     disabled={!isShoppingListDone}
                     onClick={() => {
-                        // Reopen logic: unmark shopping list, unmark execution flow to wait state.
                         setIsShoppingListDone(false);
                         setIsExecutionFlowDone(false);
                         setIsShoppingGoodsDone(false);
-                        setExpandedStep('review_shopping'); // Expand it back
+                        setExpandedStep('review_shopping');
                     }}
                     className={`flex-1 py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors border text-black hover:bg-black/5 ${
                       !isShoppingListDone ? 'opacity-50 cursor-not-allowed border-[var(--color-ios-gray-3)] text-[var(--color-ios-gray-3)]' : 'border-black'

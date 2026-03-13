@@ -12,38 +12,64 @@ interface ShoppingItem {
   currentInventory?: string;
   toBuy: string;
   isAuto: boolean;
+  systemAmount?: number;
 }
 
 interface ReviewShoppingListFlowProps {
   onBackToBatch: (completed: boolean) => void;
   isCompleted?: boolean;
+  auditData?: any[] | null;
 }
 
-export default function ReviewShoppingListFlow({ onBackToBatch, isCompleted }: ReviewShoppingListFlowProps) {
+export default function ReviewShoppingListFlow({ onBackToBatch, isCompleted, auditData }: ReviewShoppingListFlowProps) {
   // Sub-routing within the Shopping List flow
   const [view, setView] = useState<'list' | 'add_form' | 'success_add' | 'success_complete'>('list');
   
   // State for the items list (mix of auto and manual)
-  const [items, setItems] = useState<ShoppingItem[]>([
-    {
-      id: "1",
-      name: "Dada Ayam",
-      merchant: "SR Chicken",
-      amountNeeded: "1000gr",
-      currentInventory: "20gr",
-      toBuy: "980gr",
-      isAuto: true,
-    },
-    {
-      id: "2",
-      name: "Cabe Hijau",
-      merchant: "Toko Cigadung",
-      amountNeeded: "500gr",
-      currentInventory: "600gr",
-      toBuy: "-", // Sufficient inventory
-      isAuto: true,
+  const [items, setItems] = useState<ShoppingItem[]>(() => {
+    const defaultItems = [
+      {
+        id: "1",
+        name: "Dada Ayam",
+        merchant: "SR Chicken",
+        amountNeeded: "1000gr",
+        currentInventory: "20gr",
+        systemAmount: 20,
+        toBuy: "980gr",
+        isAuto: true,
+      },
+      {
+        id: "2",
+        name: "Cabe Hijau",
+        merchant: "Toko Cigadung",
+        amountNeeded: "500gr",
+        currentInventory: "600gr",
+        systemAmount: 600,
+        toBuy: "-", // Sufficient inventory
+        isAuto: true,
+      }
+    ];
+
+    if (auditData) {
+      return defaultItems.map(item => {
+        const audited = auditData.find(a => a.name === item.name);
+        if (audited) {
+          const actual = audited.actualAmount || 0;
+          const needed = parseInt(item.amountNeeded?.replace('gr', '') || "0");
+          const toBuyNum = Math.max(0, needed - actual);
+          
+          return {
+            ...item,
+            currentInventory: `${actual}gr`,
+            toBuy: toBuyNum > 0 ? `${toBuyNum}gr` : "-"
+          };
+        }
+        return item;
+      });
     }
-  ]);
+
+    return defaultItems;
+  });
 
   // Form state for adding manual items
   const [formName, setFormName] = useState("");
