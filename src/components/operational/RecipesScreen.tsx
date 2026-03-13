@@ -17,12 +17,15 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
   const [selIngName, setSelIngName] = useState("");
   const [selIngAmount, setSelIngAmount] = useState("");
   const savedRange = useRef<Range | null>(null);
-
   const saveSelection = () => {
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
-      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+      let node: Node | null = range.commonAncestorContainer;
+      while (node && node !== editorRef.current) {
+        node = node.parentNode;
+      }
+      if (node === editorRef.current) {
         savedRange.current = range.cloneRange();
       }
     }
@@ -31,6 +34,7 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
   const insertContent = (html: string) => {
     const editor = editorRef.current;
     if (!editor) return;
+    
     editor.focus();
     
     const sel = window.getSelection();
@@ -40,33 +44,40 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
       range = savedRange.current;
     } else if (sel && sel.rangeCount > 0) {
       const currentRange = sel.getRangeAt(0);
-      if (editor.contains(currentRange.commonAncestorContainer)) {
+      let node: Node | null = currentRange.commonAncestorContainer;
+      while (node && node !== editor) {
+        node = node.parentNode;
+      }
+      if (node === editor) {
         range = currentRange;
       }
     }
 
+    if (!range) {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+
+    const el = document.createElement("div");
+    el.innerHTML = html;
+    const frag = document.createDocumentFragment();
+    let lastNode: Node | null = null;
+    while (el.firstChild) {
+      lastNode = frag.appendChild(el.firstChild);
+    }
+    
     if (range) {
-      const el = document.createElement("div");
-      el.innerHTML = html;
-      const frag = document.createDocumentFragment();
-      let node: Node | null;
-      let lastNode: Node | null = null;
-      while ((node = el.firstChild)) {
-        lastNode = frag.appendChild(node);
-      }
-      
       range.deleteContents();
       range.insertNode(frag);
       
-      if (lastNode) {
+      if (lastNode && sel) {
         const newRange = document.createRange();
         newRange.setStartAfter(lastNode);
         newRange.collapse(true);
-        sel?.removeAllRanges();
-        sel?.addRange(newRange);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
       }
-    } else {
-      editor.innerHTML += html;
     }
     
     savedRange.current = null;
@@ -120,7 +131,7 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
     const unit = item ? item.unit : "";
     const label = `${selIngName} ${selIngAmount}${unit}`;
 
-    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-block align-middle bg-[#E5E5EA] text-black px-2 py-0.5 rounded-md mx-0.5 font-semibold text-[14px]" data-variable="${label}">${label}</span>&nbsp;`;
+    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-block align-middle bg-[#E5E5EA] text-black px-2 py-0.5 rounded-md mx-0.5 font-semibold text-[14px]" data-ingredient="${selIngName}">${label}</span>&nbsp;`;
     
     setShowIngModal(false);
     setSelIngName("");

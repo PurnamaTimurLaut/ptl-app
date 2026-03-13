@@ -50,7 +50,12 @@ const RecipeEditor = ({
     const sel = window.getSelection();
     if (sel && sel.rangeCount > 0) {
       const range = sel.getRangeAt(0);
-      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+      // More robust check: walk up from commonAncestorContainer
+      let node: Node | null = range.commonAncestorContainer;
+      while (node && node !== editorRef.current) {
+        node = node.parentNode;
+      }
+      if (node === editorRef.current) {
         savedRange.current = range.cloneRange();
       }
     }
@@ -59,6 +64,8 @@ const RecipeEditor = ({
   const insertContent = (html: string) => {
     const editor = editorRef.current;
     if (!editor) return;
+    
+    // Always focus the editor first
     editor.focus();
     
     const sel = window.getSelection();
@@ -68,33 +75,44 @@ const RecipeEditor = ({
       range = savedRange.current;
     } else if (sel && sel.rangeCount > 0) {
       const currentRange = sel.getRangeAt(0);
-      if (editor.contains(currentRange.commonAncestorContainer)) {
+      let node: Node | null = currentRange.commonAncestorContainer;
+      while (node && node !== editor) {
+        node = node.parentNode;
+      }
+      if (node === editor) {
         range = currentRange;
       }
     }
 
+    // Default to end of content if no range found or range is outside
+    if (!range) {
+      range = document.createRange();
+      range.selectNodeContents(editor);
+      range.collapse(false);
+    }
+
+    const el = document.createElement("div");
+    el.innerHTML = html;
+    const frag = document.createDocumentFragment();
+    let firstNode: Node | null = null;
+    let lastNode: Node | null = null;
+    while (el.firstChild) {
+      const n = el.firstChild;
+      if (!firstNode) firstNode = n;
+      lastNode = frag.appendChild(n);
+    }
+    
     if (range) {
-      const el = document.createElement("div");
-      el.innerHTML = html;
-      const frag = document.createDocumentFragment();
-      let node: Node | null;
-      let lastNode: Node | null = null;
-      while ((node = el.firstChild)) {
-        lastNode = frag.appendChild(node);
-      }
-      
       range.deleteContents();
       range.insertNode(frag);
       
-      if (lastNode) {
+      if (lastNode && sel) {
         const newRange = document.createRange();
         newRange.setStartAfter(lastNode);
         newRange.collapse(true);
-        sel?.removeAllRanges();
-        sel?.addRange(newRange);
+        sel.removeAllRanges();
+        sel.addRange(newRange);
       }
-    } else {
-      editor.innerHTML += html;
     }
     
     savedRange.current = null;
