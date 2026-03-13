@@ -32,7 +32,7 @@ export default function LoginScreen() {
       // Success! useSession will automatically pick up the new session 
       // cookie or we can trigger a hard reload if needed. Let's just 
       // let NextAuth handle the react state sync, but if it doesn't:
-      window.location.reload(); 
+      window.location.reload();
     }
   };
 
@@ -40,27 +40,24 @@ export default function LoginScreen() {
     // Immersion for login page: make the entire viewport black
     const originalBodyBg = document.body.style.backgroundColor;
     const originalHtmlBg = document.documentElement.style.backgroundColor;
-    
+
     document.body.style.backgroundColor = "black";
     document.documentElement.style.backgroundColor = "black";
-    
+
     // Target the shared mobile container in layout.tsx
     const container = document.querySelector(".max-w-md") as HTMLElement;
     let originalContainerBg = "";
     let originalContainerBorder = "";
     let originalContainerShadow = "";
-    let originalContainerMaxWidth = "";
 
     if (container) {
       originalContainerBg = container.style.backgroundColor;
       originalContainerBorder = container.style.border;
       originalContainerShadow = container.style.boxShadow;
-      originalContainerMaxWidth = container.style.maxWidth;
 
       container.style.setProperty("background-color", "black", "important");
       container.style.setProperty("border", "none", "important");
       container.style.setProperty("box-shadow", "none", "important");
-      container.style.setProperty("max-width", "none", "important");
     }
 
     return () => {
@@ -71,71 +68,72 @@ export default function LoginScreen() {
         container.style.backgroundColor = originalContainerBg;
         container.style.border = originalContainerBorder;
         container.style.boxShadow = originalContainerShadow;
-        container.style.maxWidth = originalContainerMaxWidth;
       }
     };
   }, []);
 
   return (
-    <div className="flex flex-col min-h-screen bg-black font-sans items-center justify-center lowercase overflow-hidden relative">
-      
-      {/* GIF Container with Layered Text - Breaking Container to span full viewport */}
-      <div className="absolute inset-0 flex items-center justify-center z-0">
-        <div className="relative w-screen h-screen flex items-center justify-center">
-          <img 
-            src="/water.gif" 
-            alt="Water Background" 
-            className="w-full h-full object-cover mix-blend-screen opacity-80 scale-125 md:scale-100" 
+    <div className="flex flex-col min-h-screen bg-black font-sans items-center justify-center px-8 lowercase overflow-hidden relative">
+
+      <div className="w-full max-w-xs flex flex-col items-center">
+        {/* GIF Container with Layered Text */}
+        <div className="relative w-full aspect-square flex items-center justify-center">
+          <img
+            src="/water.gif"
+            alt="Water Background"
+            className="w-full h-full object-contain scale-[1.8] mix-blend-screen opacity-80"
+            style={{ 
+              maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
+              WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)'
+            }}
           />
-          <h1 
-            className="absolute text-[24px] md:text-[32px] font-medium tracking-tight text-white/90 text-center pointer-events-none select-none z-10" 
+          <h1
+            className="absolute text-[24px] font-medium tracking-tight text-white/90 text-center pointer-events-none select-none"
             style={{ fontFamily: '"Milanesa Serif", serif' }}
           >
             selamat datang kembali
           </h1>
         </div>
-      </div>
 
-      <div className="w-full max-w-xs flex flex-col items-center z-20">
-        <form onSubmit={handleSubmit} className="w-full space-y-3 mt-48">
-          <Input 
-            id="email" 
-            name="email" 
-            placeholder="username" 
-            type="email" 
-            required 
-            disabled={isPending} 
-            className="!bg-black/40 !backdrop-blur-sm !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6" 
+        <form onSubmit={handleSubmit} className="w-full space-y-3 -mt-8 z-10">
+          <Input
+            id="email"
+            name="email"
+            placeholder="username"
+            type="email"
+            required
+            disabled={isPending}
+            className="!bg-transparent !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6"
           />
-          <Input 
-            id="password" 
-            name="password" 
-            placeholder="password" 
-            type="password" 
-            required 
-            disabled={isPending} 
-            className="!bg-black/40 !backdrop-blur-sm !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6" 
+          <Input
+            id="password"
+            name="password"
+            placeholder="password"
+            type="password"
+            required
+            disabled={isPending}
+            className="!bg-transparent !border-white/20 !text-white/60 !placeholder:text-white/20 !rounded-xl !py-6 !px-6"
           />
-          
+
           <div className="flex justify-center pt-10">
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               disabled={isPending}
               className="p-4 text-white hover:text-white/70 transition-colors disabled:opacity-50"
             >
               {isPending ? (
                 <span className="animate-pulse">...</span>
               ) : (
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="40" 
-                  height="40" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="1.2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
                   className="lucide lucide-log-in"
                 >
                   <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
@@ -154,9 +152,9 @@ export default function LoginScreen() {
         </form>
       </div>
 
-      <div className="absolute bottom-10 left-0 right-0 text-center opacity-20 z-20">
+      <div className="absolute bottom-10 left-0 right-0 text-center opacity-20">
         <p className="text-[10px] text-white leading-relaxed">
-          © 2026 pt purnama timur laut.<br/>
+          © 2026 pt purnama timur laut.<br />
           seluruh hak cipta dilindungi undang-undang.
         </p>
       </div>
