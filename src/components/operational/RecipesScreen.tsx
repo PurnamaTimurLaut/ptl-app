@@ -23,24 +23,34 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === 'Enter') {
-      e.preventDefault();
-      
-      const text = editorRef.current?.innerText || "";
-      // Count lines that start with a number to figure out next sequence
-      const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      let nextNum = 1;
-      
-      if (lines.length > 0) {
-        const lastLine = lines[lines.length - 1];
-        const match = lastLine.match(/^(\d+)\./);
-        if (match) nextNum = parseInt(match[1]) + 1;
-        else nextNum = lines.length + 1;
-      }
-      
-      const insertStr = text.length === 0 ? `1. ` : `<br><br>${nextNum}. `;
-      document.execCommand('insertHTML', false, insertStr);
+      // Just let the default Enter behavior happen, no auto-numbering
       handleInput();
     }
+  };
+
+  const insertStepNumber = () => {
+    const text = editorRef.current?.innerText || "";
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let nextNum = 1;
+    
+    if (lines.length > 0) {
+      // Try to find the last line that starts with a number.
+      for (let i = lines.length - 1; i >= 0; i--) {
+        const match = lines[i].match(/^(\d+)\./);
+        if (match) {
+          nextNum = parseInt(match[1]) + 1;
+          break;
+        }
+      }
+      if (nextNum === 1 && lines.length > 0) {
+        nextNum = lines.length + 1;
+      }
+    }
+    
+    editorRef.current?.focus();
+    const insertStr = text.trim().length === 0 ? `${nextNum}. ` : `<br><br>${nextNum}. `;
+    document.execCommand('insertHTML', false, insertStr);
+    handleInput();
   };
 
   const insertVariable = () => {
@@ -51,12 +61,7 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
     const pillHtml = `&nbsp;<span contenteditable="false" class="inline-flex items-center justify-center bg-[#F2F2F7] text-black px-2 py-0.5 rounded-md mx-0.5 font-medium text-[14px]" data-variable="${val}">${val}</span>&nbsp;`;
     
     editorRef.current?.focus();
-    
-    if (editorRef.current?.innerText.trim() === "") {
-        document.execCommand('insertHTML', false, `1. ${pillHtml}`);
-    } else {
-        document.execCommand('insertHTML', false, pillHtml);
-    }
+    document.execCommand('insertHTML', false, pillHtml);
     handleInput();
   };
 
@@ -73,11 +78,7 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
     setSelIngAmount("");
 
     editorRef.current?.focus();
-    if (editorRef.current?.innerText.trim() === "") {
-        document.execCommand('insertHTML', false, `1. ${pillHtml}`);
-    } else {
-        document.execCommand('insertHTML', false, pillHtml);
-    }
+    document.execCommand('insertHTML', false, pillHtml);
     handleInput();
   };
 
@@ -87,6 +88,9 @@ const RecipeRichEditor = ({ onChange, inventoryItems }: { onChange: (html: strin
        <div className="flex justify-between items-center px-4 py-3 border-b border-[#E5E5EA]">
           <span className="text-[17px] font-bold text-black">Recipe</span>
           <div className="flex gap-4">
+            <button onClick={insertStepNumber} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
+               Step No.
+            </button>
             <button onClick={() => setShowIngModal(true)} className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity flex items-center gap-1">
                + Add Ingredient
             </button>
