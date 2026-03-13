@@ -46,13 +46,66 @@ const RecipeEditor = ({
     }
   };
 
+  const saveSelection = () => {
+    const sel = window.getSelection();
+    if (sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      if (editorRef.current?.contains(range.commonAncestorContainer)) {
+        savedRange.current = range.cloneRange();
+      }
+    }
+  };
+
+  const insertContent = (html: string) => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    editor.focus();
+    
+    const sel = window.getSelection();
+    let range: Range | null = null;
+
+    if (savedRange.current) {
+      range = savedRange.current;
+    } else if (sel && sel.rangeCount > 0) {
+      const currentRange = sel.getRangeAt(0);
+      if (editor.contains(currentRange.commonAncestorContainer)) {
+        range = currentRange;
+      }
+    }
+
+    if (range) {
+      const el = document.createElement("div");
+      el.innerHTML = html;
+      const frag = document.createDocumentFragment();
+      let node: Node | null;
+      let lastNode: Node | null = null;
+      while ((node = el.firstChild)) {
+        lastNode = frag.appendChild(node);
+      }
+      
+      range.deleteContents();
+      range.insertNode(frag);
+      
+      if (lastNode) {
+        const newRange = document.createRange();
+        newRange.setStartAfter(lastNode);
+        newRange.collapse(true);
+        sel?.removeAllRanges();
+        sel?.addRange(newRange);
+      }
+    } else {
+      editor.innerHTML += html;
+    }
+    
+    savedRange.current = null;
+    handleInput();
+  };
+
   const insertStepNumber = () => {
     const text = editorRef.current?.innerText || "";
     const lines = text.split("\n").map(l => l.trim()).filter(l => l.length > 0);
     let nextNum = 1;
     if (lines.length > 0) {
-      // Try to find the last line that starts with a number.
-      // We look through lines from end to start.
       for (let i = lines.length - 1; i >= 0; i--) {
         const match = lines[i].match(/^(\d+)\./);
         if (match) {
@@ -60,33 +113,26 @@ const RecipeEditor = ({
           break;
         }
       }
-      // If no numbered line was found, nextNum remains based on line count or 1
       if (nextNum === 1 && lines.length > 0) {
         nextNum = lines.length + 1;
       }
     }
     
-    editorRef.current?.focus();
     const insertStr = text.trim().length === 0 ? `${nextNum}. ` : `<br><br>${nextNum}. `;
-    document.execCommand("insertHTML", false, insertStr);
-    handleInput();
+    insertContent(insertStr);
   };
 
   const insertVariable = () => {
+    saveSelection();
     const val = prompt("Enter Amount & Unit (e.g. 100g)");
     if (!val) return;
-    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-flex items-center justify-center bg-[#F2F2F7] text-black px-2 py-0.5 rounded-md mx-0.5 font-medium text-[14px]" data-variable="${val}">${val}</span>&nbsp;`;
-    editorRef.current?.focus();
-    document.execCommand("insertHTML", false, pillHtml);
-    handleInput();
+    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-block align-middle bg-[#F2F2F7] text-black px-2 py-0.5 rounded-md mx-0.5 font-medium text-[14px]" data-variable="${val}">${val}</span>&nbsp;`;
+    insertContent(pillHtml);
   };
 
   // Save current caret position before opening modal
   const openIngModal = () => {
-    const sel = window.getSelection();
-    if (sel && sel.rangeCount > 0) {
-      savedRange.current = sel.getRangeAt(0).cloneRange();
-    }
+    saveSelection();
     setShowIngModal(true);
   };
 
@@ -95,26 +141,11 @@ const RecipeEditor = ({
     const item = inventoryItems.find(i => i.name === selIngName);
     const label = item ? `${selIngName}` : selIngName;
 
-    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-flex items-center justify-center bg-[#E5E5EA] text-black px-2 py-0.5 rounded-md mx-0.5 font-semibold text-[14px]" data-ingredient="${selIngName}">${label}</span>&nbsp;`;
+    const pillHtml = `&nbsp;<span contenteditable="false" class="inline-block align-middle bg-[#E5E5EA] text-black px-2 py-0.5 rounded-md mx-0.5 font-semibold text-[14px]" data-ingredient="${selIngName}">${label}</span>&nbsp;`;
 
     setShowIngModal(false);
     setSelIngName("");
-
-    // Restore the saved caret position and insert there
-    const editor = editorRef.current;
-    if (!editor) return;
-    editor.focus();
-
-    const sel = window.getSelection();
-    if (savedRange.current && sel) {
-      sel.removeAllRanges();
-      sel.addRange(savedRange.current);
-      document.execCommand("insertHTML", false, pillHtml);
-    } else {
-      // Fallback: insert at end
-      document.execCommand("insertHTML", false, pillHtml);
-    }
-    handleInput();
+    insertContent(pillHtml);
   };
 
   return (
@@ -124,19 +155,19 @@ const RecipeEditor = ({
           <span className="text-[17px] font-bold text-black">Recipe</span>
           <div className="flex gap-4">
             <button
-              onClick={insertStepNumber}
+              onMouseDown={(e) => { e.preventDefault(); insertStepNumber(); }}
               className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity"
             >
                Step No.
             </button>
             <button
-              onClick={openIngModal}
+              onMouseDown={(e) => { e.preventDefault(); openIngModal(); }}
               className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity"
             >
               + Add Ingredient
             </button>
             <button
-              onClick={insertVariable}
+              onMouseDown={(e) => { e.preventDefault(); insertVariable(); }}
               className="text-[var(--color-ios-blue)] font-bold text-[15px] active:opacity-70 transition-opacity"
             >
               123...
