@@ -132,9 +132,9 @@ export default function LoginScreen() {
       </div>
 
       <div className="absolute bottom-10 left-0 right-0 text-center opacity-20">
-        <p className="text-[10px] text-white leading-relaxed uppercase">
-          © 2026 PT. PURNAMA TIMUR LAUT.<br />
-          SELURUH HAK CIPTA DILINDUNGI UNDANG UNDANG.
+        <p className="text-[10px] text-white leading-relaxed normal-case">
+          © 2026 PT. Purnama Timur Laut.<br />
+          Seluruh Hak Cipta Dilindungi Undang Undang.
         </p>
       </div>
     </div>
