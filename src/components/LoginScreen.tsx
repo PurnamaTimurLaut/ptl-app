@@ -61,7 +61,7 @@ export default function LoginScreen() {
             src="/water.gif"
             alt="Water Background"
             className="w-full h-full object-contain scale-[1.8] mix-blend-screen opacity-80"
-            style={{ 
+            style={{
               maskImage: 'radial-gradient(circle, black 30%, transparent 70%)',
               WebkitMaskImage: 'radial-gradient(circle, black 30%, transparent 70%)'
             }}
@@ -132,9 +132,9 @@ export default function LoginScreen() {
       </div>
 
       <div className="absolute bottom-10 left-0 right-0 text-center opacity-20">
-        <p className="text-[10px] text-white leading-relaxed">
-          © 2026 pt purnama timur laut.<br />
-          seluruh hak cipta dilindungi undang-undang.
+        <p className="text-[10px] text-white leading-relaxed uppercase">
+          © 2026 PT. PURNAMA TIMUR LAUT.<br />
+          SELURUH HAK CIPTA DILINDUNGI UNDANG UNDANG.
         </p>
       </div>
     </div>
