@@ -208,9 +208,9 @@ const RecipeView = ({
   <div className="w-full bg-white rounded-xl shadow-sm border border-[#E5E5EA] overflow-hidden flex flex-col mb-6">
     <div className="flex justify-between items-center px-4 py-3 border-b border-[#E5E5EA]">
       <span className="text-[17px] font-bold text-black">Recipe</span>
-      <div className="flex gap-4 opacity-40 pointer-events-none">
-        <span className="text-[15px] font-bold text-[var(--color-ios-blue)]">Step No.</span>
-        <span className="text-[15px] font-bold text-[var(--color-ios-blue)]">+ Add Ingredient</span>
+      <div className="flex gap-4 pointer-events-none">
+        <span className="text-[15px] text-[var(--color-ios-gray-3)]">Step No.</span>
+        <span className="text-[15px] text-[var(--color-ios-gray-3)]">+ Add Ingredient</span>
         <span className="text-[15px] text-[var(--color-ios-gray-3)]">123...</span>
       </div>
     </div>
