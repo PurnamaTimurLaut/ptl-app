@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { signIn } from "next-auth/react";
 import { Apple, Lock, Car, Building2, Settings2, Briefcase } from "lucide-react";
 import { Button } from "@/components/ui/Button";
@@ -35,6 +35,42 @@ export default function LoginScreen() {
       window.location.reload(); 
     }
   };
+
+  useEffect(() => {
+    // Immersion for login page: make the entire viewport black
+    const originalBodyBg = document.body.style.backgroundColor;
+    const originalHtmlBg = document.documentElement.style.backgroundColor;
+    
+    document.body.style.backgroundColor = "black";
+    document.documentElement.style.backgroundColor = "black";
+    
+    // Target the shared mobile container in layout.tsx
+    const container = document.querySelector(".max-w-md") as HTMLElement;
+    let originalContainerBg = "";
+    let originalContainerBorder = "";
+    let originalContainerShadow = "";
+
+    if (container) {
+      originalContainerBg = container.style.backgroundColor;
+      originalContainerBorder = container.style.border;
+      originalContainerShadow = container.style.boxShadow;
+
+      container.style.setProperty("background-color", "black", "important");
+      container.style.setProperty("border", "none", "important");
+      container.style.setProperty("box-shadow", "none", "important");
+    }
+
+    return () => {
+      // Restore original styles on unmount
+      document.body.style.backgroundColor = originalBodyBg;
+      document.documentElement.style.backgroundColor = originalHtmlBg;
+      if (container) {
+        container.style.backgroundColor = originalContainerBg;
+        container.style.border = originalContainerBorder;
+        container.style.boxShadow = originalContainerShadow;
+      }
+    };
+  }, []);
 
   return (
     <div className="flex flex-col min-h-screen bg-black font-sans items-center justify-center px-8 lowercase overflow-hidden relative">
