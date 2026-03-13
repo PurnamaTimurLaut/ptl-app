@@ -46,7 +46,7 @@ interface ManualDraft {
 }
 
 interface ReceiveShoppingGoodsFlowProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToBatch: (completed: boolean, transactions?: Transaction[]) => void;
   isCompleted?: boolean;
 }
 
@@ -629,7 +629,7 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
 
         <button 
           disabled={!isAllRecipeDone}
-          onClick={() => onBackToBatch(true)}
+          onClick={() => onBackToBatch(true, transactions)}
           className={`w-full py-4 rounded-[1.25rem] font-semibold text-[17px] flex items-center justify-center gap-2 transition-all ${
             isAllRecipeDone 
               ? 'bg-[var(--color-ios-blue)] text-white active:scale-[0.98]' 

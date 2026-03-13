@@ -7,6 +7,7 @@ import ReviewExecutionFlow from "./ReviewExecutionFlow";
 import ReceiveShoppingGoodsFlow from "./ReceiveShoppingGoodsFlow";
 import DoExecutionFlow from "./DoExecutionFlow";
 import InitialAuditFlow from "./InitialAuditFlow";
+import FinalAuditAndInputResults from "./FinalAuditAndInputResults";
 
 interface BatchDetailScreenProps {
   batchId: number;
@@ -33,6 +34,10 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
 
   const [isDoExecutionFlowOpen, setIsDoExecutionFlowOpen] = useState(false);
   const [isDoExecutionFlowDone, setIsDoExecutionFlowDone] = useState(false);
+
+  const [isFinalAuditOpen, setIsFinalAuditOpen] = useState(false);
+  const [isFinalAuditDone, setIsFinalAuditDone] = useState(false);
+  const [shoppingData, setShoppingData] = useState<any[] | null>(null);
 
   const [isInputResultsDone, setIsInputResultsDone] = useState(false);
 
@@ -69,12 +74,23 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     }
   };
 
-  const handleShoppingGoodsClose = (completed: boolean) => {
+  const handleShoppingGoodsClose = (completed: boolean, transactions?: any[]) => {
     setIsShoppingGoodsOpen(false);
     if (completed) {
       setIsShoppingGoodsDone(true);
+      if (transactions) setShoppingData(transactions);
       // Unlock action stage automatically
       setExpandedStep('do_execution');
+    }
+  };
+
+  const handleFinalAuditClose = (completed: boolean) => {
+    setIsFinalAuditOpen(false);
+    if (completed) {
+      setIsFinalAuditDone(true);
+      setIsInputResultsDone(true);
+      // Auto-expand next action step
+      setExpandedStep('barcode');
     }
   };
 
@@ -83,7 +99,7 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     if (completed) {
       setIsDoExecutionFlowDone(true);
       // Auto-expand next action step
-      setExpandedStep('input_results');
+      setExpandedStep('final_audit_results');
     }
   };
 
@@ -105,6 +121,17 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
 
   if (isDoExecutionFlowOpen) {
     return <DoExecutionFlow isCompleted={isDoExecutionFlowDone} onBackToBatch={handleDoExecutionFlowClose} />;
+  }
+
+  if (isFinalAuditOpen) {
+    return (
+      <FinalAuditAndInputResults 
+        isCompleted={isFinalAuditDone} 
+        onBackToBatch={handleFinalAuditClose} 
+        initialAuditData={auditData}
+        shoppingData={shoppingData}
+      />
+    );
   }
 
   return (
@@ -454,10 +481,64 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
               )}
             </div>
 
+            {/* Final Audit and Input Results Step */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                !isDoExecutionFlowDone 
+                  ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                  : isFinalAuditDone 
+                    ? 'bg-white/80' 
+                    : 'bg-white'
+              }`}
+            >
+              <div 
+                onClick={() => toggleStep('final_audit_results', isDoExecutionFlowDone)}
+                className="p-4 flex justify-between items-center cursor-pointer select-none"
+              >
+                <div className="flex items-center gap-3">
+                  {!isDoExecutionFlowDone ? (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                      <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                    </div>
+                  ) : isFinalAuditDone ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                      <CheckCircle size={20} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                      <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                    </div>
+                  )}
+                  <span className={`font-semibold text-[16px] ${!isDoExecutionFlowDone ? 'text-black/30' : isFinalAuditDone ? 'text-black/60' : 'text-black'}`}>
+                    Final Audit and Input Results
+                  </span>
+                </div>
+                {isDoExecutionFlowDone && (
+                  expandedStep === 'final_audit_results' ? (
+                    <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
+                  )
+                )}
+                {!isDoExecutionFlowDone && (
+                  <ChevronDown size={20} className="text-black/20" />
+                )}
+              </div>
+              
+              {isDoExecutionFlowDone && expandedStep === 'final_audit_results' && (
+                <div className="px-4 pb-4 pt-1 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
+                  <button 
+                    onClick={() => setIsFinalAuditOpen(true)}
+                    className="w-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors active:bg-[var(--color-ios-blue)]/10"
+                  >
+                    <Search size={18} /> View
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Other Action Steps */}
             {[
-              { name: 'Input Results', id: 'input_results', isAvailable: isDoExecutionFlowDone, isDone: isInputResultsDone },
-              { name: 'Create and Assign Barcode', id: 'barcode', isAvailable: isInputResultsDone, isDone: false },
+              { name: 'Create and Assign Barcode', id: 'barcode', isAvailable: isFinalAuditDone, isDone: false },
               { name: 'Complete Process', id: 'complete', isAvailable: false, isDone: false }
             ].map((step, idx) => (
               <div key={idx} className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
