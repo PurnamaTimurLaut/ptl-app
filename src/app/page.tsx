@@ -36,11 +36,7 @@ export default function AppRouter() {
     if (!hasPassedSplash) {
       return <SplashScreen onEnter={() => setHasPassedSplash(true)} />;
     }
-    return (
-      <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
-        <LoginScreen />
-      </main>
-    );
+    return <LoginScreen />;
   }
 
   const handleLogout = () => {
@@ -78,7 +74,7 @@ export default function AppRouter() {
   };
 
   return (
-    <main className="bg-[var(--color-ios-gray-6)] min-h-screen">
+    <div className="max-w-md mx-auto bg-white min-h-screen relative shadow-2xl overflow-hidden border-x border-gray-200">
       {currentView === "dashboard" && (
         <DivisionDashboard 
           userName={session.user?.name || "User"} 
@@ -146,6 +142,6 @@ export default function AppRouter() {
            onBack={() => setCurrentView("director_projects")} 
         />
       )}
-    </main>
+    </div>
   );
 }

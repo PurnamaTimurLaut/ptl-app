@@ -14,11 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased bg-gray-100 text-foreground">
+      <body className="antialiased bg-gray-100 text-foreground overflow-x-hidden">
         <AppSessionProvider>
-          <div className="max-w-md mx-auto bg-white min-h-screen relative shadow-2xl overflow-hidden border-x border-gray-200">
-             {children}
-          </div>
+          {children}
         </AppSessionProvider>
       </body>
     </html>
