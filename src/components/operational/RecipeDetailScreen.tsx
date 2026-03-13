@@ -106,6 +106,22 @@ export default function TemplateDetailScreen({ templateId, onBack }: TemplateDet
     await load();
   };
 
+  const handleAddFlowStepNo = () => {
+    let nextNum = 1;
+    const itemsToScan = isEditMode ? editFlows : template?.flows || [];
+    if (itemsToScan.length > 0) {
+      for (let i = itemsToScan.length - 1; i >= 0; i--) {
+        const match = itemsToScan[i].name.match(/^(\d+)\./);
+        if (match) {
+          nextNum = parseInt(match[1]) + 1;
+          break;
+        }
+      }
+      if (nextNum === 1) nextNum = itemsToScan.length + 1;
+    }
+    setNewFlowName(`${nextNum}. `);
+  };
+
   const handleRemoveFlow = async (id: string) => {
     await removeTemplateFlow(id);
     setEditFlows(prev => prev.filter(f => f.id !== id));
@@ -314,20 +330,28 @@ export default function TemplateDetailScreen({ templateId, onBack }: TemplateDet
           {/* Add new flow row (only in edit mode) */}
           {isEditMode && (
             <div className="flex gap-3">
-              <div className="flex-1 relative">
-                <input
-                  type="text"
-                  placeholder="(e.g. Velvet Sapi)"
-                  value={newFlowName}
-                  onChange={e => setNewFlowName(e.target.value)}
-                  onKeyDown={e => e.key === 'Enter' && handleAddFlow()}
-                  className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm border border-[#E5E5EA]"
-                />
-                {newFlowName && (
-                  <button onClick={() => setNewFlowName("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
-                    <XCircle size={20} className="text-[#C7C7CC] fill-[#C7C7CC] text-white" />
-                  </button>
-                )}
+              <div className="flex-1 flex gap-2">
+                <div className="flex-1 relative">
+                  <input
+                    type="text"
+                    placeholder="(e.g. Velvet Sapi)"
+                    value={newFlowName}
+                    onChange={e => setNewFlowName(e.target.value)}
+                    onKeyDown={e => e.key === 'Enter' && handleAddFlow()}
+                    className="w-full bg-white rounded-xl py-3.5 px-4 pr-10 text-[17px] text-black outline-none shadow-sm border border-[#E5E5EA]"
+                  />
+                  {newFlowName && (
+                    <button onClick={() => setNewFlowName("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                      <XCircle size={20} className="text-[#C7C7CC] fill-[#C7C7CC] text-white" />
+                    </button>
+                  )}
+                </div>
+                <button 
+                  onClick={handleAddFlowStepNo}
+                  className="px-3 bg-white border border-[#E5E5EA] rounded-xl text-[var(--color-ios-blue)] font-semibold text-[13px] active:bg-gray-50"
+                >
+                  Step No.
+                </button>
               </div>
               <button onClick={handleAddFlow} className="w-12 shrink-0 bg-white border border-[#E5E5EA] rounded-xl flex items-center justify-center active:bg-gray-50">
                 <Plus size={20} className="text-[var(--color-ios-blue)]" />

@@ -231,6 +231,21 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     setFlowName(""); setFlowRecipeId("");
   };
 
+  const handleAddTempFlowStepNo = () => {
+    let nextNum = 1;
+    if (tempFlows.length > 0) {
+      for (let i = tempFlows.length - 1; i >= 0; i--) {
+        const match = tempFlows[i].name.match(/^(\d+)\./);
+        if (match) {
+          nextNum = parseInt(match[1]) + 1;
+          break;
+        }
+      }
+      if (nextNum === 1) nextNum = tempFlows.length + 1;
+    }
+    setFlowName(`${nextNum}. `);
+  };
+
   const handleSaveFullTemplate = async () => {
     if (!newTempName) return alert("Menu Name is required");
     
@@ -388,9 +403,14 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
                    </button>
                  )}
              </div>
-             <button onClick={handleAddTempFlowLocal} className="w-full py-3.5 rounded-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-medium text-[16px] flex items-center justify-center gap-2 bg-white active:bg-blue-50 transition-colors">
-               <Plus size={18} strokeWidth={2.5} /> Add Execution Flow
-             </button>
+              <div className="flex gap-3">
+                <button onClick={handleAddTempFlowLocal} className="flex-[2] py-3.5 rounded-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-medium text-[16px] flex items-center justify-center gap-2 bg-white active:bg-blue-50 transition-colors">
+                  <Plus size={18} strokeWidth={2.5} /> Add Execution Flow
+                </button>
+                <button onClick={handleAddTempFlowStepNo} className="flex-1 py-3.5 rounded-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] font-medium text-[16px] flex items-center justify-center gap-2 bg-white active:bg-blue-50 transition-colors">
+                  Step No.
+                </button>
+              </div>
            </div>
         </div>
 
