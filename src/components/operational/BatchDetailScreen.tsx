@@ -8,6 +8,7 @@ import ReceiveShoppingGoodsFlow from "./ReceiveShoppingGoodsFlow";
 import DoExecutionFlow from "./DoExecutionFlow";
 import InitialAuditFlow from "./InitialAuditFlow";
 import FinalAuditAndInputResults from "./FinalAuditAndInputResults";
+import CreateAndAssignBarcode from "./CreateAndAssignBarcode";
 
 interface BatchDetailScreenProps {
   batchId: number;
@@ -38,8 +39,10 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
   const [isFinalAuditOpen, setIsFinalAuditOpen] = useState(false);
   const [isFinalAuditDone, setIsFinalAuditDone] = useState(false);
   const [shoppingData, setShoppingData] = useState<any[] | null>(null);
+  const [finalResults, setFinalResults] = useState<{ quantity: string, time: string } | null>(null);
 
-  const [isInputResultsDone, setIsInputResultsDone] = useState(false);
+  const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
+  const [isBarcodeDone, setIsBarcodeDone] = useState(false);
 
   const toggleStep = (stepId: string, isActive: boolean) => {
     if (!isActive) return; // Cannot toggle disabled steps
@@ -84,13 +87,22 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     }
   };
 
-  const handleFinalAuditClose = (completed: boolean) => {
+  const handleFinalAuditClose = (completed: boolean, results?: { quantity: string, time: string }) => {
     setIsFinalAuditOpen(false);
     if (completed) {
       setIsFinalAuditDone(true);
-      setIsInputResultsDone(true);
+      if (results) setFinalResults(results);
       // Auto-expand next action step
       setExpandedStep('barcode');
+    }
+  };
+
+  const handleBarcodeClose = (completed: boolean) => {
+    setIsBarcodeOpen(false);
+    if (completed) {
+      setIsBarcodeDone(true);
+      // Auto-expand next action step
+      setExpandedStep('complete');
     }
   };
 
@@ -130,6 +142,19 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
         onBackToBatch={handleFinalAuditClose} 
         initialAuditData={auditData}
         shoppingData={shoppingData}
+      />
+    );
+  }
+
+  if (isBarcodeOpen) {
+    return (
+      <CreateAndAssignBarcode 
+        isCompleted={isBarcodeDone} 
+        onBackToBatch={handleBarcodeClose}
+        productName="Ayam Suwir Cabe Ijo"
+        plannedQuantity="50 pcs"
+        finishedQuantity={finalResults?.quantity || "0 pcs"}
+        projectName="Project#001"
       />
     );
   }
@@ -536,10 +561,64 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
               )}
             </div>
 
+            {/* Barcode Step */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                !isFinalAuditDone 
+                  ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                  : isBarcodeDone 
+                    ? 'bg-white/80' 
+                    : 'bg-white'
+              }`}
+            >
+              <div 
+                onClick={() => toggleStep('barcode', isFinalAuditDone)}
+                className="p-4 flex justify-between items-center cursor-pointer select-none"
+              >
+                <div className="flex items-center gap-3">
+                  {!isFinalAuditDone ? (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                      <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                    </div>
+                  ) : isBarcodeDone ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                      <CheckCircle size={20} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                      <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                    </div>
+                  )}
+                  <span className={`font-semibold text-[16px] ${!isFinalAuditDone ? 'text-black/30' : isBarcodeDone ? 'text-black/60' : 'text-black'}`}>
+                    Create and Assign Barcode
+                  </span>
+                </div>
+                {isFinalAuditDone && (
+                  expandedStep === 'barcode' ? (
+                    <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
+                  )
+                )}
+                {!isFinalAuditDone && (
+                  <ChevronDown size={20} className="text-black/20" />
+                )}
+              </div>
+              
+              {isFinalAuditDone && expandedStep === 'barcode' && (
+                <div className="px-4 pb-4 pt-1 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
+                  <button 
+                    onClick={() => setIsBarcodeOpen(true)}
+                    className="w-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors active:bg-[var(--color-ios-blue)]/10"
+                  >
+                    <Search size={18} /> View
+                  </button>
+                </div>
+              )}
+            </div>
+
             {/* Other Action Steps */}
             {[
-              { name: 'Create and Assign Barcode', id: 'barcode', isAvailable: isFinalAuditDone, isDone: false },
-              { name: 'Complete Process', id: 'complete', isAvailable: false, isDone: false }
+              { name: 'Complete Process', id: 'complete', isAvailable: isBarcodeDone, isDone: false }
             ].map((step, idx) => (
               <div key={idx} className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
                   !step.isAvailable 

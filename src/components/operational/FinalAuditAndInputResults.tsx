@@ -15,7 +15,7 @@ interface FinalAuditItem {
 }
 
 interface FinalAuditAndInputResultsProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToBatch: (completed: boolean, results?: { quantity: string, time: string }) => void;
   isCompleted?: boolean;
   initialAuditData?: any[] | null;
   shoppingData?: any[] | null;
@@ -102,7 +102,7 @@ export default function FinalAuditAndInputResults({
           You Have Successfully Completed the Task
         </h1>
         <div className="w-full max-w-sm mt-auto pb-12">
-           <Button variant="primary" fullWidth onClick={() => onBackToBatch(true)}>
+           <Button variant="primary" fullWidth onClick={() => onBackToBatch(true, { quantity: finishedQuantity, time: finishedDateTime })}>
             Go Back
           </Button>
         </div>
