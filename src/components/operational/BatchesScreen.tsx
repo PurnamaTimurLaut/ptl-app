@@ -14,19 +14,21 @@ interface BatchesScreenProps {
 export default function BatchesScreen({ onViewBatch, onProfileClick, onNavTabChange }: BatchesScreenProps) {
   const [activeTab, setActiveTab] = useState<'production' | 'inventory' | 'schedules' | 'recipes'>('production');
 
-  // Hardcoded mock data based on the Figma design
-  const toMakeBatches = [
-    { id: 1, title: 'Ayam Suwir Cabe Ijo', qty: 50, deadline: '22/03/2026' },
-    { id: 2, title: 'Sapi Lada Hitam', qty: 100, deadline: '25/03/2026' },
-    { id: 3, title: 'Sapi Teriyaki', qty: 20, deadline: '18/03/2026' },
+  // Updated mock data with status
+  const batches = [
+    { id: 1, title: 'Ayam Suwir Cabe Ijo', qty: 50, deadline: '22/03/2026', status: 'to_make' as const },
+    { id: 2, title: 'Sapi Lada Hitam', qty: 100, deadline: '25/03/2026', status: 'to_make' as const },
+    { id: 3, title: 'Sapi Teriyaki', qty: 20, deadline: '18/03/2026', status: 'to_make' as const },
+    { id: 4, title: 'Ayam Suwir Kemangi', qty: 10, deadline: '02/03/2026', status: 'completed' as const },
+    { id: 5, title: 'Gulai Ayam', qty: 30, deadline: '15/03/2026', status: 'cancelled' as const },
   ];
 
-  const completedBatches = [
-    { id: 4, title: 'Ayam Suwir Kemangi', qty: 10, deadline: '02/03/2026' },
-  ];
+  const toMakeBatches = batches.filter(b => b.status === 'to_make');
+  const completedBatches = batches.filter(b => b.status === 'completed');
+  const cancelledBatches = batches.filter(b => b.status === 'cancelled');
 
   // Helper component for the Batch List Items
-  const BatchCard = ({ id, title, qty, deadline }: { id: number, title: string, qty: number, deadline: string }) => (
+  const BatchCard = ({ id, title, qty, deadline, status }: { id: number, title: string, qty: number, deadline: string, status: string }) => (
     <div 
       onClick={() => onViewBatch && onViewBatch(id)}
       className="bg-white rounded-2xl p-4 flex justify-between items-center shadow-sm cursor-pointer active:opacity-80 transition-opacity"
@@ -39,7 +41,12 @@ export default function BatchesScreen({ onViewBatch, onProfileClick, onNavTabCha
           Deadline Date: {deadline}
         </p>
       </div>
-      <ChevronRight size={20} className="text-[var(--color-ios-gray-2)]" />
+      <div className="flex items-center gap-2">
+        {status === 'cancelled' && (
+          <span className="text-[10px] font-bold text-red-500 bg-red-50 px-2 py-0.5 rounded uppercase leading-none">Cancelled</span>
+        )}
+        <ChevronRight size={20} className="text-[var(--color-ios-gray-2)]" />
+      </div>
     </div>
   );
 
@@ -65,20 +72,30 @@ export default function BatchesScreen({ onViewBatch, onProfileClick, onNavTabCha
 
         {/* To Make List */}
         <div className="mb-8">
-          <h2 className="text-[17px] font-semibold text-black mb-4">To Make</h2>
+          <h2 className="text-[17px] font-semibold text-black mb-4 px-1">To Make</h2>
           <div className="flex flex-col gap-3">
             {toMakeBatches.map(batch => (
-              <BatchCard key={batch.id} id={batch.id} title={batch.title} qty={batch.qty} deadline={batch.deadline} />
+              <BatchCard key={batch.id} id={batch.id} title={batch.title} qty={batch.qty} deadline={batch.deadline} status={batch.status} />
             ))}
           </div>
         </div>
 
         {/* Completed List */}
-        <div>
-          <h2 className="text-[17px] font-semibold text-black mb-4">Completed</h2>
-          <div className="flex flex-col gap-3">
+        <div className="mb-8">
+          <h2 className="text-[17px] font-semibold text-black mb-4 px-1">Completed</h2>
+          <div className="flex flex-col gap-3 opacity-70">
              {completedBatches.map(batch => (
-              <BatchCard key={batch.id} id={batch.id} title={batch.title} qty={batch.qty} deadline={batch.deadline} />
+              <BatchCard key={batch.id} id={batch.id} title={batch.title} qty={batch.qty} deadline={batch.deadline} status={batch.status} />
+            ))}
+          </div>
+        </div>
+
+        {/* Cancelled List */}
+        <div>
+          <h2 className="text-[17px] font-semibold text-black mb-4 px-1">Cancelled</h2>
+          <div className="flex flex-col gap-3 opacity-50 grayscale">
+             {cancelledBatches.map(batch => (
+              <BatchCard key={batch.id} id={batch.id} title={batch.title} qty={batch.qty} deadline={batch.deadline} status={batch.status} />
             ))}
           </div>
         </div>

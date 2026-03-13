@@ -9,6 +9,8 @@ import DoExecutionFlow from "./DoExecutionFlow";
 import InitialAuditFlow from "./InitialAuditFlow";
 import FinalAuditAndInputResults from "./FinalAuditAndInputResults";
 import CreateAndAssignBarcode from "./CreateAndAssignBarcode";
+import CompleteProcessFlow from "./CompleteProcessFlow";
+import confetti from "canvas-confetti";
 
 interface BatchDetailScreenProps {
   batchId: number;
@@ -43,6 +45,9 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
 
   const [isBarcodeOpen, setIsBarcodeOpen] = useState(false);
   const [isBarcodeDone, setIsBarcodeDone] = useState(false);
+
+  const [isCompleteProcessOpen, setIsCompleteProcessOpen] = useState(false);
+  const [isBatchCompleted, setIsBatchCompleted] = useState(false);
 
   const toggleStep = (stepId: string, isActive: boolean) => {
     if (!isActive) return; // Cannot toggle disabled steps
@@ -106,6 +111,20 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
     }
   };
 
+  const handleCompleteProcessClose = (completed: boolean) => {
+    setIsCompleteProcessOpen(false);
+    if (completed) {
+      setIsBatchCompleted(true);
+      // Celebrate!
+      confetti({
+        particleCount: 150,
+        spread: 70,
+        origin: { y: 0.6 },
+        colors: ['#007AFF', '#5AC8FA', '#4CD964', '#FFCC00'],
+      });
+    }
+  };
+
   const handleDoExecutionFlowClose = (completed: boolean) => {
     setIsDoExecutionFlowOpen(false);
     if (completed) {
@@ -157,6 +176,10 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
         projectName="Project#001"
       />
     );
+  }
+
+  if (isCompleteProcessOpen) {
+    return <CompleteProcessFlow isCompleted={isBatchCompleted} onBackToBatch={handleCompleteProcessClose} />;
   }
 
   return (
@@ -616,43 +639,60 @@ export default function BatchDetailScreen({ batchId, onBack }: BatchDetailScreen
               )}
             </div>
 
-            {/* Other Action Steps */}
-            {[
-              { name: 'Complete Process', id: 'complete', isAvailable: isBarcodeDone, isDone: false }
-            ].map((step, idx) => (
-              <div key={idx} className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
-                  !step.isAvailable 
-                    ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
-                    : step.isDone 
-                      ? 'bg-white/80' 
-                      : 'bg-white'
-                }`}
+            {/* Complete Process Step */}
+            <div className={`rounded-2xl shadow-sm overflow-hidden transition-all ${
+                !isBarcodeDone 
+                  ? 'bg-[#B4B4B8] opacity-80 cursor-not-allowed' 
+                  : isBatchCompleted 
+                    ? 'bg-white/80' 
+                    : 'bg-white'
+              }`}
+            >
+              <div 
+                onClick={() => toggleStep('complete', isBarcodeDone)}
+                className="p-4 flex justify-between items-center cursor-pointer select-none"
               >
-                <div 
-                  className="p-4 flex justify-between items-center cursor-pointer select-none"
-                >
-                  <div className="flex items-center gap-3">
-                    {!step.isAvailable ? (
-                      <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
-                        <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
-                      </div>
-                    ) : step.isDone ? (
-                      <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
-                        <CheckCircle size={20} />
-                      </div>
-                    ) : (
-                      <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
-                        <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
-                      </div>
-                    )}
-                    <span className={`font-semibold text-[16px] ${!step.isAvailable ? 'text-black/30' : step.isDone ? 'text-black/60' : 'text-black'}`}>
-                      {step.name}
-                    </span>
-                  </div>
-                  <ChevronDown size={20} className={!step.isAvailable ? "text-black/20" : "text-[var(--color-ios-gray-2)]"} />
+                <div className="flex items-center gap-3">
+                  {!isBarcodeDone ? (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-gray-2)] flex items-center justify-center">
+                      <MoreHorizontal size={18} className="text-[var(--color-ios-gray-2)]" />
+                    </div>
+                  ) : isBatchCompleted ? (
+                    <div className="w-8 h-8 rounded-full flex items-center justify-center bg-[var(--color-ios-blue)] text-white">
+                      <CheckCircle size={20} />
+                    </div>
+                  ) : (
+                    <div className="w-8 h-8 rounded-full border-2 border-[var(--color-ios-yellow)] flex items-center justify-center">
+                      <Clock size={18} className="text-[var(--color-ios-yellow)]" strokeWidth={2.5} />
+                    </div>
+                  )}
+                  <span className={`font-semibold text-[16px] ${!isBarcodeDone ? 'text-black/30' : isBatchCompleted ? 'text-black/60' : 'text-black'}`}>
+                    Complete Process
+                  </span>
                 </div>
+                {isBarcodeDone && (
+                  expandedStep === 'complete' ? (
+                    <ChevronUp size={20} className="text-[var(--color-ios-gray-2)]" />
+                  ) : (
+                    <ChevronDown size={20} className="text-[var(--color-ios-gray-2)]" />
+                  )
+                )}
+                {!isBarcodeDone && (
+                  <ChevronDown size={20} className="text-black/20" />
+                )}
               </div>
-            ))}
+              
+              {isBarcodeDone && expandedStep === 'complete' && (
+                <div className="px-4 pb-4 pt-1 border-t border-[var(--color-ios-gray-6)] mt-2 pt-4">
+                  <button 
+                    onClick={() => setIsCompleteProcessOpen(true)}
+                    className="w-full border border-[var(--color-ios-blue)] text-[var(--color-ios-blue)] py-2.5 rounded-full font-semibold text-[15px] flex items-center justify-center gap-2 transition-colors active:bg-[var(--color-ios-blue)]/10"
+                  >
+                    Agree and Complete Task
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
