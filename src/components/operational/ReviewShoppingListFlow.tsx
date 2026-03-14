@@ -16,12 +16,12 @@ interface ShoppingItem {
 }
 
 interface ReviewShoppingListFlowProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToProduction: (completed: boolean) => void;
   isCompleted?: boolean;
   auditData?: any[] | null;
 }
 
-export default function ReviewShoppingListFlow({ onBackToBatch, isCompleted, auditData }: ReviewShoppingListFlowProps) {
+export default function ReviewShoppingListFlow({ onBackToProduction, isCompleted, auditData }: ReviewShoppingListFlowProps) {
   // Sub-routing within the Shopping List flow
   const [view, setView] = useState<'list' | 'add_form' | 'success_add' | 'success_complete'>('list');
   
@@ -138,7 +138,7 @@ export default function ReviewShoppingListFlow({ onBackToBatch, isCompleted, aud
             fullWidth 
             onClick={() => {
               if (view === 'success_add') setView('list');
-              if (view === 'success_complete') onBackToBatch(true); // Return to batch details marked as done
+              if (view === 'success_complete') onBackToProduction(true); // Return to production details marked as done
             }}
           >
             Go Back
@@ -225,7 +225,7 @@ export default function ReviewShoppingListFlow({ onBackToBatch, isCompleted, aud
       {/* Header */}
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />

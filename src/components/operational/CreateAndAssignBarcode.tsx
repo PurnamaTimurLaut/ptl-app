@@ -5,7 +5,7 @@ import { ChevronLeft, Check } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface CreateAndAssignBarcodeProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToProduction: (completed: boolean) => void;
   isCompleted?: boolean;
   productName: string;
   plannedQuantity: string;
@@ -14,7 +14,7 @@ interface CreateAndAssignBarcodeProps {
 }
 
 export default function CreateAndAssignBarcode({
-  onBackToBatch,
+  onBackToProduction,
   isCompleted,
   productName,
   plannedQuantity,
@@ -70,7 +70,7 @@ export default function CreateAndAssignBarcode({
           You Have Successfully Completed the Task
         </h1>
         <div className="w-full max-w-sm mt-auto pb-12">
-           <Button variant="primary" fullWidth onClick={() => onBackToBatch(true)}>
+           <Button variant="primary" fullWidth onClick={() => onBackToProduction(true)}>
             Go Back
           </Button>
         </div>
@@ -83,7 +83,7 @@ export default function CreateAndAssignBarcode({
       {/* Header */}
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />

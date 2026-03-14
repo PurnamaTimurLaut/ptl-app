@@ -69,7 +69,7 @@ export default function ProjectsScreen({ onAddProject, onViewProject, onProfileC
                      <div key={p.id} className="bg-white rounded-xl p-4 flex items-center justify-between cursor-pointer shadow-sm hover:shadow-md transition-shadow" onClick={() => onViewProject(p.id)}>
                         <div>
                            <h3 className="text-[17px] font-semibold text-black">{p.name || p.id}</h3>
-                           <p className="text-[13px] text-[var(--color-ios-gray-2)]">Quantity: {p._count?.productions || 0} batches</p>
+                           <p className="text-[13px] text-[var(--color-ios-gray-2)]">Quantity: {p._count?.productions || 0} production items</p>
                            <p className="text-[13px] text-[var(--color-ios-gray-2)]">Start Date: {formatDate(p.startDate)}</p>
                         </div>
                         <ChevronRight className="text-[var(--color-ios-gray-3)]" size={20} />
@@ -124,7 +124,7 @@ export default function ProjectsScreen({ onAddProject, onViewProject, onProfileC
       </div>
 
       {/* Bottom Nav */}
-      <div className="fixed bottom-0 left-0 right-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md border-t border-[var(--color-ios-gray-4)] pb-safe pt-2 px-6 flex justify-around items-center z-50">
+      <div className="fixed bottom-0 w-full max-w-md bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md border-t border-[var(--color-ios-gray-4)] pb-safe pt-2 px-6 flex justify-around items-center z-50">
         <button className="flex flex-col items-center gap-1 min-w-[64px] pb-2">
           <Inbox size={26} className="text-[var(--color-ios-blue)]" strokeWidth={1.5} />
           <span className="text-[10px] font-medium text-[var(--color-ios-blue)]">Projects</span>

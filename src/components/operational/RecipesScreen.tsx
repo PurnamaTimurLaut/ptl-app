@@ -242,6 +242,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
   // Template Form State
   const [newTempName, setNewTempName] = useState("");
+  const [newTempShortCode, setNewTempShortCode] = useState("");
   const [tempIngredients, setTempIngredients] = useState<{name: string, quantity: string, unit: string}[]>([]);
   const [tempFlows, setTempFlows] = useState<{name: string, recipeId: string}[]>([]);
 
@@ -307,26 +308,33 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     if (!newTempName) return alert("Menu Name is required");
     
     try {
-      const res = await createProductionTemplate({ name: newTempName });
+      const res = await createProductionTemplate(
+        newTempName,
+        newTempShortCode
+      );
       if (!res.success || !res.template) throw new Error(res.error);
       const tempId = res.template.id;
 
       for (const i of tempIngredients) {
-         await addTemplateIngredient(tempId, { name: i.name, quantity: parseFloat(i.quantity), unit: i.unit });
+         const iRes = await addTemplateIngredient(tempId, { name: i.name, quantity: parseFloat(i.quantity), unit: i.unit });
+         if (!iRes.success) throw new Error("Failed to add ingredient: " + i.name);
       }
 
       for (const f of tempFlows) {
-         await addTemplateFlow(tempId, { name: f.name, recipeId: f.recipeId || undefined });
+         const fRes = await addTemplateFlow(tempId, { name: f.name, recipeId: f.recipeId || undefined });
+         if (!fRes.success) throw new Error("Failed to add flow: " + f.name);
       }
 
       setNewTempName(""); 
+      setNewTempShortCode("");
       setTempIngredients([]); setTempFlows([]);
       setShowAddTemplate(false);
       loadAll();
       if(onViewTemplate) onViewTemplate(tempId);
 
     } catch (error: any) {
-      alert("Failed to save full template: " + error.message);
+      console.error("Failed to save full template:", error);
+      alert("Failed to save full template: " + (error?.message || "Unknown error"));
     }
   }
 
@@ -344,7 +352,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
 
   // ------------- FULL SCREEN RENDER FOR CREATE TEMPLATE -------------
   if (showAddTemplate) {
-    const isFormValid = newTempName.length > 0 && tempIngredients.length > 0 && tempFlows.length > 0;
+    const isFormValid = newTempName.length > 0;
 
     return (
       <div className="fixed inset-0 w-full max-w-md mx-auto bg-[#F5F5F7] z-50 flex flex-col font-sans overflow-y-auto shadow-2xl">
@@ -376,6 +384,27 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
                  </button>
                )}
              </div>
+           </div>
+ 
+           {/* Short Code */}
+           <div className="mb-6">
+             <h2 className="text-[17px] font-bold text-black mb-3">Short Code</h2>
+             <div className="relative">
+               <input 
+                 type="text" 
+                 placeholder="(e.g. ASCI)" 
+                 value={newTempShortCode} 
+                 maxLength={4}
+                 onChange={e => setNewTempShortCode(e.target.value)} 
+                 className="w-full bg-white rounded-xl py-3.5 px-4 text-[17px] text-black outline-none shadow-sm uppercase" 
+               />
+               {newTempShortCode && (
+                 <button onClick={() => setNewTempShortCode("")} className="absolute right-3.5 top-1/2 -translate-y-1/2">
+                   <XCircle size={20} className="text-[#C7C7CC] fill-[#C7C7CC] text-white" />
+                 </button>
+               )}
+             </div>
+             <p className="text-[12px] text-[var(--color-ios-gray-2)] mt-1 ml-1 select-none">Unique 4-letter code for logic generation.</p>
            </div>
 
            <hr className="border-[#E5E5EA] mb-6" />
@@ -474,15 +503,15 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
         {/* Fixed Bottom Button */}
         <div className="fixed bottom-0 w-full max-w-md mx-auto left-0 right-0 p-6 bg-gradient-to-t from-[#F5F5F7] via-[#F5F5F7] to-transparent pointer-events-none z-10 pb-[env(safe-area-inset-bottom)]">
            <div className="pointer-events-auto shadow-[0_-20px_20px_-10px_rgba(245,245,247,0.9)]">
-             <button 
+              <button 
                 onClick={handleSaveFullTemplate} 
                 disabled={!isFormValid} 
                 className={`w-full py-4 rounded-full font-semibold text-[17px] transition-colors ${
                   isFormValid ? 'bg-[var(--color-ios-blue)] text-white active:opacity-80' : 'bg-[#AEAEB2] text-[#E5E5EA] cursor-not-allowed'
                 }`}
-             >
-               Create Template
-             </button>
+              >
+                {isFormValid ? 'Create Template' : 'Enter Menu Name to Save'}
+              </button>
            </div>
         </div>
       </div>
@@ -551,7 +580,7 @@ export default function DatabasesScreen({ onProfileClick, onViewTemplate, onView
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-24">
       <TopBar onProfileClick={onProfileClick} />
       
-      <main className="px-6 flex-1 max-w-xl mx-auto w-full mt-4">
+      <main className="px-6 flex-1 w-full mt-4">
         {/* Restore Databases Header */}
         <h1 className="text-4xl font-bold tracking-tight text-black mb-6">Databases</h1>
 

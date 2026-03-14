@@ -186,7 +186,7 @@ export default function ProjectDetailScreen({ projectId, onBack }: ProjectDetail
                  <div className="flex-1">
                     <label className="block text-sm font-semibold text-[var(--color-ios-gray-1)] mb-1">Menu</label>
                     <div className="bg-[var(--color-ios-gray-6)] rounded-xl py-3 px-4 text-[15px] text-black/60 border border-[var(--color-ios-gray-5)]">
-                       {p.menuId}
+                       {p.ProductionTemplate?.name || p.menuId}
                     </div>
                  </div>
                  <div className="flex-1">

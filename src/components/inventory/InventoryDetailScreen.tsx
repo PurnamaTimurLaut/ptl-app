@@ -168,7 +168,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>{/* Spacer */}
         </div>
         
-        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4 max-w-md mx-auto">
+        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4">
           
           {/* Container */}
           <div className="mb-6">
@@ -312,7 +312,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>
         </div>
 
-        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4 max-w-md mx-auto">
+        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4">
           {/* From Container */}
           <div className="mb-6">
             <label className="block text-[15px] font-semibold text-black mb-2">From Container</label>
@@ -407,7 +407,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>
         </div>
 
-        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4 max-w-md mx-auto">
+        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4">
           {/* Amount */}
           <div className="mb-6">
             <label className="block text-[15px] font-semibold text-black mb-2">Amount</label>
@@ -501,7 +501,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
             <div className="w-20"></div>
           </div>
 
-          <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4 max-w-md mx-auto">
+          <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4">
             <div className="mb-6">
               <label className="block text-[15px] font-semibold text-black mb-2">To Container</label>
               <div className="relative">
@@ -550,7 +550,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>
         </div>
 
-        <div className="px-6 w-full max-w-md mx-auto flex-1 flex flex-col pt-4">
+        <div className="px-6 w-full flex-1 flex flex-col pt-4">
           <div className="flex flex-col">
             {item?.unassignedContainers.length === 0 && (
               <div className="text-center py-6 text-[var(--color-ios-gray-2)] italic text-[15px]">No unassigned stock</div>
@@ -599,7 +599,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>
         </div>
 
-        <div className="px-6 w-full max-w-md mx-auto flex-1 flex flex-col pt-4">
+        <div className="px-6 w-full flex-1 flex flex-col pt-4">
           <div className="flex flex-col">
             {item?.logs.length === 0 && (
               <div className="text-center py-6 text-[var(--color-ios-gray-2)] italic text-[15px]">No logs recorded</div>
@@ -646,7 +646,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
           <div className="w-20"></div>
         </div>
 
-        <div className="px-6 pb-32 w-full max-w-md mx-auto flex-1 flex flex-col pt-4">
+        <div className="px-6 pb-32 w-full flex-1 flex flex-col pt-4">
           {/* Name */}
           <div className="mb-6">
             <label className="block text-[15px] font-semibold text-black mb-2">Item Name</label>
@@ -748,7 +748,7 @@ export default function InventoryDetailScreen({ itemId, onBack }: InventoryDetai
 
           {/* Delete Item Button */}
           <button 
-            onClick={() => setShowDeleteConfirm(true)}
+            onClick={() => { setShowSettings(false); setShowDeleteConfirm(true); }}
             className="w-full py-4 rounded-full border border-[#FF3B30] text-[#FF3B30] font-semibold text-[17px] active:bg-[#FF3B30]/10 transition-colors bg-transparent"
           >
             Delete Item

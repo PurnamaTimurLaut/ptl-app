@@ -24,14 +24,39 @@ export async function getProductionTemplates() {
   }
 }
 
-export async function createProductionTemplate(data: { name: string }) {
+export async function createProductionTemplate(name: string, shortCode?: string) {
+  console.log("DEBUG: createProductionTemplate called with:", { name, shortCode });
+  
+  if (!name) {
+    return { success: false, error: "Menu Name is required" };
+  }
+
   try {
-    const template = await prisma.productionTemplate.create({ data });
+    const data: any = {
+      name: name.trim(),
+    };
+    
+    if (shortCode && shortCode.trim() !== "") {
+      data.shortCode = shortCode.trim().toUpperCase();
+    }
+
+    console.log("DEBUG: Final Prisma Data Object:", JSON.stringify(data));
+
+    const template = await prisma.productionTemplate.create({
+      data: data
+    });
+    
+    console.log("DEBUG: Template created! ID:", template.id);
     revalidatePath("/");
     return { success: true, template };
   } catch (error: any) {
-    console.error("Failed to create template:", error);
-    return { success: false, error: error?.message || "Failed to create template" };
+    console.error("CRITICAL ERROR in createProductionTemplate:");
+    console.error(error);
+    
+    return { 
+      success: false, 
+      error: error?.message || "Internal Database Error" 
+    };
   }
 }
 

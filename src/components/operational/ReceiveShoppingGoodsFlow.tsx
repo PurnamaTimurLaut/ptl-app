@@ -46,11 +46,11 @@ interface ManualDraft {
 }
 
 interface ReceiveShoppingGoodsFlowProps {
-  onBackToBatch: (completed: boolean, transactions?: Transaction[]) => void;
+  onBackToProduction: (completed: boolean, transactions?: Transaction[]) => void;
   isCompleted?: boolean;
 }
 
-export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }: ReceiveShoppingGoodsFlowProps) {
+export default function ReceiveShoppingGoodsFlow({ onBackToProduction, isCompleted }: ReceiveShoppingGoodsFlowProps) {
   const [view, setView] = useState<'main' | 'unpurchased' | 'history_receipts' | 'add_purchase_list' | 'add_purchase_success'>('main');
 
   // Recipe Data
@@ -597,7 +597,7 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
   return (
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-12">
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
-        <button onClick={() => onBackToBatch(false)} className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity">
+        <button onClick={() => onBackToProduction(false)} className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity">
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />
           <span className="text-[17px] font-medium">Back</span>
         </button>
@@ -629,7 +629,7 @@ export default function ReceiveShoppingGoodsFlow({ onBackToBatch, isCompleted }:
 
         <button 
           disabled={!isAllRecipeDone}
-          onClick={() => onBackToBatch(true, transactions)}
+          onClick={() => onBackToProduction(true, transactions)}
           className={`w-full py-4 rounded-[1.25rem] font-semibold text-[17px] flex items-center justify-center gap-2 transition-all ${
             isAllRecipeDone 
               ? 'bg-[var(--color-ios-blue)] text-white active:scale-[0.98]' 

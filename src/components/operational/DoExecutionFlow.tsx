@@ -15,7 +15,7 @@ interface ExecutionStep {
 }
 
 interface DoExecutionFlowProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToProduction: (completed: boolean) => void;
   isCompleted?: boolean;
 }
 
@@ -29,7 +29,7 @@ function formatDateTimeDisplay(dtString: string) {
   return `${timePart}, ${day}/${month}/${year}`;
 }
 
-export default function DoExecutionFlow({ onBackToBatch, isCompleted }: DoExecutionFlowProps) {
+export default function DoExecutionFlow({ onBackToProduction, isCompleted }: DoExecutionFlowProps) {
   // Mock items - in real app would come from props or db
   const [items, setItems] = useState<ExecutionStep[]>([
     {
@@ -75,7 +75,7 @@ export default function DoExecutionFlow({ onBackToBatch, isCompleted }: DoExecut
       {/* Top Navigation */}
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />
@@ -156,7 +156,7 @@ export default function DoExecutionFlow({ onBackToBatch, isCompleted }: DoExecut
           
           <button 
             disabled={!allDone || isCompleted}
-            onClick={() => onBackToBatch(true)}
+            onClick={() => onBackToProduction(true)}
             className={`w-full py-4 rounded-full font-bold text-[17px] shadow-lg transition-all ${
               isCompleted
                 ? 'bg-[var(--color-ios-gray-4)] text-[var(--color-ios-gray-2)] cursor-not-allowed shadow-none'

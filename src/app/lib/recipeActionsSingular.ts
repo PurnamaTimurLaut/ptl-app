@@ -23,7 +23,17 @@ export async function getProductionTemplateById(id: string) {
 
 export async function deleteProductionTemplate(id: string) {
   try {
-    await prisma.productionTemplate.delete({ where: { id } });
+    // Check if it's used in any production
+    const inUse = await prisma.production.findFirst({ where: { menuId: id } });
+    if (inUse) {
+      return { success: false, error: 'Cannot delete template because it is assigned to an existing production. Please delete the production first.' };
+    }
+
+    await prisma.$transaction([
+      prisma.templateIngredient.deleteMany({ where: { templateId: id } }),
+      prisma.templateExecutionFlow.deleteMany({ where: { templateId: id } }),
+      prisma.productionTemplate.delete({ where: { id } })
+    ]);
     revalidatePath("/");
     return { success: true };
   } catch (error: any) {

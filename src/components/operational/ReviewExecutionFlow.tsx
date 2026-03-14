@@ -14,7 +14,7 @@ interface ExecutionStep {
 }
 
 interface ReviewExecutionFlowProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToProduction: (completed: boolean) => void;
   isCompleted?: boolean;
 }
 
@@ -28,7 +28,7 @@ function formatDateTimeDisplay(dtString: string) {
   return `${timePart}, ${day}/${month}/${year}`;
 }
 
-export default function ReviewExecutionFlow({ onBackToBatch, isCompleted }: ReviewExecutionFlowProps) {
+export default function ReviewExecutionFlow({ onBackToProduction, isCompleted }: ReviewExecutionFlowProps) {
   const [view, setView] = useState<'list' | 'add_form' | 'success_add' | 'success_complete'>('list');
 
   // Initial mock state matching the design closely
@@ -122,7 +122,7 @@ export default function ReviewExecutionFlow({ onBackToBatch, isCompleted }: Revi
             variant="primary" fullWidth 
             onClick={() => {
               if (view === 'success_add') setView('list');
-              if (view === 'success_complete') onBackToBatch(true);
+              if (view === 'success_complete') onBackToProduction(true);
             }}
           >
             Go Back
@@ -213,7 +213,7 @@ export default function ReviewExecutionFlow({ onBackToBatch, isCompleted }: Revi
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-12">
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />

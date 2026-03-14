@@ -229,7 +229,7 @@ export async function buyStock(
   let locationInfo: string;
 
   if (toContainerName === "unassigned") {
-    // Create a temporary unassigned container to track this batch
+    // Create a temporary unassigned container to track this production
     const newContainer = await prisma.inventoryContainer.create({
       data: {
         itemId,

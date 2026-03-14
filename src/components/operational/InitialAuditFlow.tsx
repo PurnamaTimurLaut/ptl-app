@@ -14,14 +14,14 @@ interface AuditIngredient {
 }
 
 interface InitialAuditFlowProps {
-  onBackToBatch: (completed: boolean, auditData?: AuditIngredient[]) => void;
+  onBackToProduction: (completed: boolean, auditData?: AuditIngredient[]) => void;
   isCompleted?: boolean;
 }
 
-export default function InitialAuditFlow({ onBackToBatch, isCompleted }: InitialAuditFlowProps) {
+export default function InitialAuditFlow({ onBackToProduction, isCompleted }: InitialAuditFlowProps) {
   const [view, setView] = useState<'audit' | 'review' | 'success'>('audit');
   
-  // Initial ingredients list - typically fetched based on batch/menu
+  // Initial ingredients list - typically fetched based on production/menu
   const [ingredients, setIngredients] = useState<AuditIngredient[]>([
     { id: "1", name: "Dada Ayam", systemAmount: 20, unit: "gr" },
     { id: "2", name: "Cabe Hijau", systemAmount: 600, unit: "gr" },
@@ -60,7 +60,7 @@ export default function InitialAuditFlow({ onBackToBatch, isCompleted }: Initial
            <Button 
             variant="primary" 
             fullWidth 
-            onClick={() => onBackToBatch(true, ingredients)}
+            onClick={() => onBackToProduction(true, ingredients)}
           >
             Go Back
           </Button>
@@ -74,7 +74,7 @@ export default function InitialAuditFlow({ onBackToBatch, isCompleted }: Initial
       {/* Header */}
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />

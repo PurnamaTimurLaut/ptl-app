@@ -4,17 +4,17 @@ import { ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 
 interface CompleteProcessFlowProps {
-  onBackToBatch: (completed: boolean) => void;
+  onBackToProduction: (completed: boolean) => void;
   isCompleted?: boolean;
 }
 
-export default function CompleteProcessFlow({ onBackToBatch, isCompleted }: CompleteProcessFlowProps) {
+export default function CompleteProcessFlow({ onBackToProduction, isCompleted }: CompleteProcessFlowProps) {
   return (
     <div className="min-h-screen bg-[var(--color-ios-gray-6)] flex flex-col font-sans pb-12">
       {/* Header */}
       <div className="w-full flex items-center justify-center px-4 py-4 sticky top-0 bg-[var(--color-ios-gray-6)]/90 backdrop-blur-md z-10 relative">
         <button 
-          onClick={() => onBackToBatch(false)}
+          onClick={() => onBackToProduction(false)}
           className="absolute left-4 flex items-center text-[var(--color-ios-blue)] active:opacity-70 transition-opacity"
         >
           <ChevronLeft size={28} strokeWidth={2.5} className="-ml-2" />
@@ -37,7 +37,7 @@ export default function CompleteProcessFlow({ onBackToBatch, isCompleted }: Comp
           <Button 
             variant="primary" 
             fullWidth 
-            onClick={() => onBackToBatch(true)}
+            onClick={() => onBackToProduction(true)}
           >
             Agree and Complete Task
           </Button>

@@ -1,8 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { ChevronLeft, X } from "lucide-react";
-import { createProject } from "@/app/lib/projectActions";
+import { ChevronLeft, X, Trash2 } from "lucide-react";
+import { createProject, getNextProjectCode } from "@/app/lib/projectActions";
+import { getProductionTemplates } from "@/app/lib/recipeActions";
+import { useEffect } from "react";
 
 interface AddProjectScreenProps {
   onBack: () => void;
@@ -27,6 +29,19 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
   const [endDate, setEndDate] = useState("");
   const [budget, setBudget] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [templates, setTemplates] = useState<any[]>([]);
+  const [nextProjectCode, setNextProjectCode] = useState("...");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const tRes = await getProductionTemplates();
+      if (tRes.success) setTemplates(tRes.templates || []);
+      
+      const cRes = await getNextProjectCode();
+      setNextProjectCode(cRes);
+    };
+    fetchData();
+  }, []);
 
   const [productions, setProductions] = useState<ProductionBlock[]>([{
     id: 1,
@@ -39,15 +54,22 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
   }]);
 
   const addProduction = () => {
-    setProductions(prev => [...prev, {
-      id: prev.length + 1,
-      menu: "",
-      quantity: "",
-      assignedTime: "",
-      assignedDate: "",
-      deadlineTime: "",
-      deadlineDate: ""
-    }]);
+    setProductions(prev => {
+       const maxId = prev.length > 0 ? Math.max(...prev.map(p => p.id)) : 0;
+       return [...prev, {
+         id: maxId + 1,
+         menu: "",
+         quantity: "",
+         assignedTime: "",
+         assignedDate: "",
+         deadlineTime: "",
+         deadlineDate: ""
+       }];
+    });
+  };
+
+  const removeProduction = (id: number) => {
+    setProductions(prev => prev.filter(p => p.id !== id));
   };
 
   const updateProduction = (id: number, key: keyof ProductionBlock, value: string) => {
@@ -68,6 +90,7 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
     const globalEnd = new Date(`${endDate}T${endTime}`).getTime();
 
     if (globalStart >= globalEnd) return false;
+    if (productions.length === 0) return false;
 
     for (const p of productions) {
       if (!p.menu || !p.quantity || !p.assignedTime || !p.assignedDate || !p.deadlineTime || !p.deadlineDate) {
@@ -115,7 +138,7 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
     }
   };
 
-  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII'];
+  const romanNumerals = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
   // Helper functions for dynamic time limits
   const getMinTime = (dateToCheck: string, limitDate: string, limitTime: string) => {
@@ -171,9 +194,14 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
             <input 
               type="text" placeholder="Enter Title..." 
               value={projectName} onChange={e => setProjectName(e.target.value)}
-              className="w-full bg-transparent py-3 pl-4 pr-10 text-[15px] text-black outline-none placeholder:text-[var(--color-ios-gray-3)]" 
+              className="w-full bg-transparent py-3 pl-4 pr-24 text-[15px] text-black outline-none placeholder:text-[var(--color-ios-gray-3)]" 
             />
-            {projectName && <button onClick={() => setProjectName('')} className="absolute right-3 top-1/2 -translate-y-1/2 bg-[var(--color-ios-gray-3)] text-white rounded-full p-0.5"><X size={14}/></button>}
+            <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+              <span className="text-[12px] font-bold text-[var(--color-ios-blue)] bg-[var(--color-ios-blue)]/10 px-2 py-1 rounded-md">
+                {nextProjectCode}
+              </span>
+              {projectName && <button onClick={() => setProjectName('')} className="bg-[var(--color-ios-gray-3)] text-white rounded-full p-0.5"><X size={14}/></button>}
+            </div>
           </div>
         </div>
 
@@ -224,7 +252,17 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
         {/* Productions */}
         {productions.map((p, index) => (
            <div key={p.id} className={`space-y-4 mb-8 transition-opacity duration-300 ${!isProjectDetailsValid ? 'opacity-50 pointer-events-none' : ''}`}>
-              <h3 className="text-center font-bold text-black text-[16px] mb-2">Production {romanNumerals[index] || index + 1}</h3>
+              <div className="relative mb-2">
+                <h3 className="text-center font-bold text-black text-[16px]">Production {romanNumerals[index] || index + 1}</h3>
+                {index > 0 && (
+                  <button 
+                    onClick={() => removeProduction(p.id)} 
+                    className="absolute right-0 top-1/2 -translate-y-1/2 text-red-500 hover:bg-red-50 p-1.5 rounded-full transition-colors"
+                  >
+                    <Trash2 size={18} />
+                  </button>
+                )}
+              </div>
               
               <div className={`flex gap-3`}>
                  <div className="flex-1">
@@ -232,8 +270,9 @@ export default function AddProjectScreen({ onBack, onCreate }: AddProjectScreenP
                     <div className={`relative border border-[var(--color-ios-gray-5)] rounded-xl shadow-sm overflow-hidden ${!isProjectDetailsValid ? 'bg-gray-100' : 'bg-white'}`}>
                       <select disabled={!isProjectDetailsValid} value={p.menu} onChange={e => updateProduction(p.id, 'menu', e.target.value)} className="w-full bg-transparent py-3 px-4 text-[15px] text-black outline-none appearance-none">
                          <option value="" disabled>Search</option>
-                         <option value="Ayam Suwir Cabe Ijo">Ayam Suwir Cabe Ijo</option>
-                         <option value="Dendeng Balado">Dendeng Balado</option>
+                         {templates.map(t => (
+                           <option key={t.id} value={t.id}>{t.name}</option>
+                         ))}
                       </select>
                       <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[var(--color-ios-gray-3)]">
                          <ChevronLeft className="-rotate-90" size={16} />

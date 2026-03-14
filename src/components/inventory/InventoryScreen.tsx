@@ -103,7 +103,7 @@ export default function InventoryScreen({ onProfileClick, onViewItem, onNavTabCh
     <div className="flex flex-col min-h-screen bg-[#F5F5F7] font-sans pb-32">
       <TopBar onProfileClick={onProfileClick} />
 
-      <div className="px-6 mt-2 mb-6 w-full max-w-md mx-auto">
+      <div className="px-6 mt-2 mb-6 w-full">
         <h1 className="text-4xl font-bold text-black tracking-tight mb-6">Inventory</h1>
 
         {/* Segmented Control */}

@@ -11,124 +11,113 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   email     String   @unique
-  password  String   
+  password  String
   name      String
-  role      String   // DIRECTOR or OPERATIONAL
+  role      String
   createdAt DateTime @default(now())
 }
 
 model Project {
-  id          String   @id @default(cuid())
+  id          String       @id @default(cuid())
   name        String
   startDate   DateTime
   endDate     DateTime
   budget      Float
-  status      String   @default("RUNNING") // RUNNING, COMPLETED, CANCELLED
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  status      String       @default("RUNNING")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  projectCode String?      @unique
   productions Production[]
 }
 
 model Production {
-  id           String   @id @default(cuid())
-  projectId    String
-  menuId       String
-  quantity     Int
-  assignedDate DateTime
-  deadlineDate DateTime
-  status       String   @default("ASSIGNED")
-  
-  project      Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  id                 String             @id @default(cuid())
+  projectId          String
+  menuId             String
+  quantity           Int
+  assignedDate       DateTime
+  deadlineDate       DateTime
+  status             String             @default("ASSIGNED")
+  productionCode     String?            @unique
+  ProductionTemplate ProductionTemplate @relation(fields: [menuId], references: [id])
+  project            Project            @relation(fields: [projectId], references: [id], onDelete: Cascade)
 }
 
-// --- DATABASES MODULE ---
-
-// 1. Production Template (e.g., "Nasi Campur")
 model ProductionTemplate {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  ingredients TemplateIngredient[]
+  id          String                  @id @default(cuid())
+  name        String                  @unique
+  shortCode   String?                 @unique
+  Production  Production[]
   flows       TemplateExecutionFlow[]
+  ingredients TemplateIngredient[]
 }
 
-// Ingredients belonging to a Production Template
 model TemplateIngredient {
-  id          String   @id @default(cuid())
-  templateId  String
-  name        String   
-  quantity    Float
-  unit        String   
-  template    ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  id         String             @id @default(cuid())
+  templateId String
+  name       String
+  quantity   Float
+  unit       String
+  template   ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
-// The Execution sequence (e.g. "Prep Ayam") mapped to a specific Recipe 
 model TemplateExecutionFlow {
-  id          String   @id @default(cuid())
-  templateId  String
-  name        String   
-  recipeId    String?  
-  template    ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
-  recipe      CookingRecipe?     @relation(fields: [recipeId], references: [id])
+  id         String             @id @default(cuid())
+  templateId String
+  name       String
+  recipeId   String?
+  recipe     CookingRecipe?     @relation(fields: [recipeId], references: [id])
+  template   ProductionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
 }
 
-// 2. The actual Cooking Instructions
 model CookingRecipe {
-  id           String   @id @default(cuid())
-  name         String   @unique 
-  instructions String   
+  id           String                  @id @default(cuid())
+  name         String                  @unique
+  instructions String
   flows        TemplateExecutionFlow[]
 }
 
-// --- INVENTORY MODULE ---
-
 model InventoryItem {
-  id               String   @id @default(cuid())
-  itemSequenceCode Int      @unique @default(autoincrement()) // Auto-generates 1, 2, 3...
+  id               String               @id @default(cuid())
+  itemSequenceCode Int                  @unique @default(autoincrement())
   name             String
-  unit             String   // e.g. gr, kg, pcs
-  status           String   @default("ok") // ok, needs_assignment, finished
-  lastAudit        DateTime @default(now())
-
+  unit             String
+  status           String               @default("ok")
+  lastAudit        DateTime             @default(now())
   containers       InventoryContainer[]
   logs             InventoryLog[]
+}
+
+model InventoryContainer {
+  id     String        @id @default(cuid())
+  itemId String
+  name   String
+  type   ContainerType
+  amount Float         @default(0)
+  item   InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+}
+
+model InventoryLog {
+  id            String        @id @default(cuid())
+  itemId        String
+  uniqueCode    String        @unique
+  actionType    LogActionType
+  title         String
+  locationInfo  String
+  referenceInfo String
+  createdAt     DateTime      @default(now())
+  item          InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
 }
 
 enum ContainerType {
   ACTIVE
   RESERVE
-  UNASSIGNED 
-}
-
-model InventoryContainer {
-  id        String   @id @default(cuid())
-  itemId    String
-  name      String   
-  type      ContainerType
-  amount    Float    @default(0)
-
-  item      InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  UNASSIGNED
 }
 
 enum LogActionType {
-  STOCK_ADJUSTMENT // SAI
-  MOVE_STOCK       // MSI
-  BUY_STOCK        // BSI
-  ASSIGN_STOCK     // ASI 
-}
-
-model InventoryLog {
-  id               String   @id @default(cuid())
-  itemId           String
-  uniqueCode       String   @unique // e.g. SAI00100001
-  actionType       LogActionType
-  
-  // Snapshot Strings 
-  title            String   
-  locationInfo     String   
-  referenceInfo    String   
-  
-  createdAt        DateTime @default(now())
-
-  item             InventoryItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  STOCK_ADJUSTMENT
+  MOVE_STOCK
+  BUY_STOCK
+  ASSIGN_STOCK
 }
